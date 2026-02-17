@@ -1,0 +1,245 @@
+"""
+Scheduler for sending automated email reminders.
+Uses APScheduler to run background tasks for email notifications.
+"""
+
+import logging
+from datetime import datetime, time, date, timedelta, timezone
+from typing import List, Dict, Any
+import pytz
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+
+import models
+from database import SessionLocal
+from email_service import send_revision_reminder_email, is_email_configured
+
+logger = logging.getLogger(__name__)
+
+# Global scheduler instance
+scheduler = AsyncIOScheduler()
+
+
+def get_db() -> Session:
+    """Get a database session."""
+    return SessionLocal()
+
+
+def get_questions_due_for_user(db: Session, user_id: int) -> List[Dict]:
+    """
+    Get all questions due for revision for a specific user.
+    
+    Args:
+        db: Database session
+        user_id: User ID
+        
+    Returns:
+        List of questions with their details
+    """
+    today = date.today()
+    
+    schedules = db.query(models.Schedule).filter(
+        and_(
+            models.Schedule.user_id == user_id,
+            models.Schedule.next_review_date <= today
+        )
+    ).all()
+    
+    questions = []
+    for sch in schedules:
+        question = db.query(models.Question).filter(
+            models.Question.id == sch.question_id
+        ).first()
+        
+        if not question:
+            continue
+        
+        # Get tags for this question
+        tags = db.query(models.Tag.name).join(
+            models.QuestionTag,
+            models.Tag.id == models.QuestionTag.tag_id
+        ).filter(
+            models.QuestionTag.question_id == question.id
+        ).all()
+        
+        questions.append({
+            "question_id": question.id,
+            "title": question.title,
+            "link": question.link,
+            "platform": question.platform,
+            "notes": question.notes,
+            "tags": [tag[0] for tag in tags]
+        })
+    
+    return questions
+
+
+def send_reminder_for_user(user: models.User, db: Session) -> bool:
+    """
+    Send reminder email to a specific user if they have questions due.
+    
+    Args:
+        user: User model object
+        db: Database session
+        
+    Returns:
+        bool: True if email was sent or not needed, False on error
+    """
+    try:
+        questions = get_questions_due_for_user(db, int(user.id))
+        
+        if not questions:
+            logger.debug(f"No questions due for user {user.email}, skipping email.")
+            return True
+        
+        success = send_revision_reminder_email(
+            to_email=str(user.email),
+            user_name=str(user.name) if user.name else "User",
+            questions=questions
+        )
+        
+        if success:
+            logger.info(f"Sent reminder email to {user.email} with {len(questions)} questions")
+        else:
+            logger.warning(f"Failed to send reminder email to {user.email}")
+        
+        return success
+        
+    except Exception as e:
+        logger.error(f"Error sending reminder for user {user.id}: {str(e)}")
+        return False
+
+
+async def check_and_send_reminders():
+    """
+    Main scheduler job: Check all users and send reminders to those
+    whose preferred reminder time matches the current time.
+    
+    This job runs every minute and checks if any user's reminder time
+    matches the current time (within the same minute).
+    """
+    if not is_email_configured():
+        logger.debug("Email service not configured, skipping reminder check.")
+        return
+    
+    db = get_db()
+    try:
+        # Get current UTC time
+        now_utc = datetime.now(timezone.utc)
+        
+        # Find users with email notifications enabled
+        users = db.query(models.User).filter(
+            models.User.email_notifications_enabled == True,
+            models.User.email_reminder_time.isnot(None)
+        ).all()
+        
+        for user in users:
+            try:
+                # Get user's timezone
+                user_tz = pytz.timezone(str(user.timezone) if user.timezone else "UTC")
+                
+                # Convert current UTC time to user's timezone
+                user_now = now_utc.replace(tzinfo=pytz.UTC).astimezone(user_tz)
+                
+                # Get user's preferred reminder time
+                reminder_time = user.email_reminder_time
+                
+                # Check if current time matches user's reminder time (hour and minute)
+                if (user_now.hour == reminder_time.hour and 
+                    user_now.minute == reminder_time.minute):
+                    
+                    logger.info(f"Triggering reminder for user {user.email} at their preferred time {reminder_time}")
+                    send_reminder_for_user(user, db)
+                    
+            except Exception as e:
+                logger.error(f"Error processing user {user.id}: {str(e)}")
+                continue
+                
+    except Exception as e:
+        logger.error(f"Error in check_and_send_reminders: {str(e)}")
+    finally:
+        db.close()
+
+
+async def send_immediate_reminder(user_id: int) -> Dict[str, Any]:
+    """
+    Send an immediate reminder email to a specific user.
+    Useful for testing or manual trigger.
+    
+    Args:
+        user_id: User ID to send reminder to
+        
+    Returns:
+        Dict with status and message
+    """
+    db = get_db()
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        
+        if not user:
+            return {"success": False, "message": "User not found"}
+        
+        questions = get_questions_due_for_user(db, user_id)
+        
+        if not questions:
+            return {"success": True, "message": "No questions due for revision"}
+        
+        logger.info(f"Sending email to {user.email} with {len(questions)} questions. Type: {type(questions)}, First item type: {type(questions[0]) if questions else 'N/A'}")
+        
+        success = send_revision_reminder_email(
+            to_email=str(user.email),
+            user_name=str(user.name) if user.name else "User",
+            questions=questions
+        )
+        
+        if success:
+            return {"success": True, "message": f"Email sent with {len(questions)} questions"}
+        else:
+            return {"success": False, "message": "Failed to send email"}
+            
+    except Exception as e:
+        logger.error(f"Error sending immediate reminder: {str(e)}")
+        return {"success": False, "message": str(e)}
+    finally:
+        db.close()
+
+
+def job_listener(event):
+    """Handle job execution events for logging."""
+    if event.exception:
+        logger.error(f"Job {event.job_id} failed with exception: {event.exception}")
+    else:
+        logger.debug(f"Job {event.job_id} executed successfully")
+
+
+def start_scheduler():
+    """Start the background scheduler."""
+    if scheduler.running:
+        logger.info("Scheduler is already running")
+        return
+    
+    # Add event listener for job execution
+    scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    
+    # Add job to check reminders every minute
+    scheduler.add_job(
+        check_and_send_reminders,
+        trigger=IntervalTrigger(minutes=1),
+        id="email_reminder_checker",
+        name="Check and send email reminders",
+        replace_existing=True
+    )
+    
+    scheduler.start()
+    logger.info("Email reminder scheduler started")
+
+
+def stop_scheduler():
+    """Stop the background scheduler."""
+    if scheduler.running:
+        scheduler.shutdown(wait=False)
+        logger.info("Email reminder scheduler stopped")
