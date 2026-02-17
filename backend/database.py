@@ -9,13 +9,13 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set!")
 
-# Azure PostgreSQL Flexible Server config
-# Append sslmode=require if not already present in the URL
-if "sslmode" not in DATABASE_URL:
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+# Azure PostgreSQL Flexible Server configuration
+# Append sslmode=require only in production (local dev PostgreSQL typically doesn't use SSL)
+if ENVIRONMENT == "production" and "sslmode" not in DATABASE_URL:
     separator = "&" if "?" in DATABASE_URL else "?"
     DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
-
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Connection pool settings sized for Azure tiers:
 # - PostgreSQL Flexible Server B1MS: max ~50 connections
