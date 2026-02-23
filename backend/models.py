@@ -25,6 +25,11 @@ class User(Base):
     email_reminder_time = Column(Time, nullable=True)  # User's preferred reminder time (HH:MM)
     timezone = Column(String, default="UTC")
 
+    # Custom spaced repetition intervals (in days)
+    reminder_days_done = Column(Integer, default=12)  # Interval when solved
+    reminder_days_help = Column(Integer, default=5)   # Interval when needed help
+    reminder_days_fail = Column(Integer, default=3)   # Interval when failed
+
 
 class Question(Base):
     __tablename__ = "questions"
