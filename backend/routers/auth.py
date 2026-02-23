@@ -11,7 +11,7 @@ from google.auth.transport import requests as google_requests
 
 from schemas import (
     UserAuth, UserProfile, TokenResponse, RefreshTokenRequest,
-    EmailSettingsUpdate, UserProfileWithSettings,
+    EmailSettingsUpdate, UserProfileWithSettings, ReminderIntervalsUpdate,
     GoogleAuthRequest, CompleteSignupRequest
 )
 from deps import get_current_user, get_db
@@ -344,7 +344,10 @@ def get_profile_with_settings(db: Session = Depends(get_db), user_id: int = Depe
         "email": user.email,
         "email_notifications_enabled": user.email_notifications_enabled if user.email_notifications_enabled is not None else True,
         "email_reminder_time": reminder_time_str,
-        "timezone": user.timezone or "UTC"
+        "timezone": user.timezone or "UTC",
+        "reminder_days_done": user.reminder_days_done if user.reminder_days_done is not None else 12,
+        "reminder_days_help": user.reminder_days_help if user.reminder_days_help is not None else 5,
+        "reminder_days_fail": user.reminder_days_fail if user.reminder_days_fail is not None else 3
     }
 
 @router.put("/profile")
@@ -395,6 +398,31 @@ def update_email_settings(
         "email_notifications_enabled": user.email_notifications_enabled,
         "email_reminder_time": settings.email_reminder_time,
         "timezone": user.timezone
+    }
+
+
+@router.put("/reminder-intervals")
+def update_reminder_intervals(
+    settings: ReminderIntervalsUpdate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user)
+):
+    """Update user's custom spaced repetition intervals."""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.reminder_days_done = settings.reminder_days_done
+    user.reminder_days_help = settings.reminder_days_help
+    user.reminder_days_fail = settings.reminder_days_fail
+    
+    db.commit()
+    
+    return {
+        "message": "Reminder intervals updated",
+        "reminder_days_done": user.reminder_days_done,
+        "reminder_days_help": user.reminder_days_help,
+        "reminder_days_fail": user.reminder_days_fail
     }
 
 
