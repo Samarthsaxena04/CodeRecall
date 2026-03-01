@@ -15,16 +15,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # Load environment variables
 load_dotenv()
 
-# Import the Base from database module and all models
-from database import Base
+# Import the Base + computed DATABASE_URL from database module and all models
+from database import Base, DATABASE_URL
 from models import User, Question, Tag, QuestionTag, QuestionLog, Schedule
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override sqlalchemy.url with the one from .env
-config.set_main_option('sqlalchemy.url', os.getenv('DATABASE_URL'))
+# Override sqlalchemy.url with the computed DATABASE_URL (adds sslmode in production)
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
