@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# 📊 Weak topics with actual success rates
 @router.get("/stats/weak-topics")
 def stats_weak_topics(
     db: Session = Depends(get_db),
@@ -47,7 +46,6 @@ def stats_weak_topics(
         else:
             tag_stats[tag_name]['fail'] += 1
     
-    # Calculate success rates and sort by lowest
     result = []
     for tag, stats in tag_stats.items():
         if stats['total'] > 0:
@@ -59,14 +57,10 @@ def stats_weak_topics(
                 'failed_attempts': stats['fail']
             })
     
-    # Sort by lowest success rate (weakest topics first)
     result.sort(key=lambda x: x['success_rate'])
-    
-    # Return top 3 weakest topics
     return result[:3]
 
 
-# 📊 Overall status count
 @router.get("/stats/overview")
 def stats_overview(
     db: Session = Depends(get_db),
@@ -85,7 +79,6 @@ def stats_overview(
     return {status: count for status, count in result}
 
 
-# 📊 Weak tags (where you needed help or failed)
 @router.get("/stats/tags")
 def stats_by_tags(
     db: Session = Depends(get_db),
@@ -116,13 +109,11 @@ def stats_by_tags(
     return {tag: count for tag, count in result}
 
 
-# 📅 Daily activity heatmap — SQL-level aggregation (no Python-side row iteration)
 @router.get("/stats/heatmap")
 def stats_heatmap(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    # Get user's timezone string and validate it.
     user = db.query(models.User).filter(models.User.id == user_id).first()
     user_tz_str = "UTC"
     if user and user.timezone:

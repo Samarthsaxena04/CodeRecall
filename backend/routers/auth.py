@@ -25,10 +25,7 @@ import models
 router = APIRouter()
 
 def validate_password(password: str) -> tuple[bool, str]:
-    """
-    Validate password strength
-    Returns: (is_valid, error_message)
-    """
+    """Enforce minimum password complexity. Returns (is_valid, error_message)."""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long"
     if not re.search(r"[A-Z]", password):
@@ -101,7 +98,6 @@ def verify_refresh_token(token: str, db: Session):
 @router.post("/register")
 @limiter.limit("5/minute")   # max 5 registration attempts per IP per minute
 def register(request: Request, user: UserAuth, db: Session = Depends(get_db)):
-    # Validate password strength
     is_valid, error_msg = validate_password(user.password)
     if not is_valid:
         raise HTTPException(status_code=400, detail=error_msg)
@@ -131,7 +127,6 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
     
     try:
-        # Verify the Google ID token
         idinfo = id_token.verify_oauth2_token(
             request.token,
             google_requests.Request(),
@@ -148,7 +143,6 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid Google token")
     
-    # Check if user already exists with this email
     existing_user = db.query(models.User).filter(models.User.email == google_email).first()
     
     if existing_user:
@@ -184,7 +178,6 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
             "message": "Please complete your signup"
         }
     
-    # Create a new partial user
     new_user = models.User(
         email=google_email,
         name="User",
@@ -209,9 +202,7 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
 @limiter.limit("5/minute")   # max 5 attempts per IP per minute
 def complete_signup(request: Request, body: CompleteSignupRequest, db: Session = Depends(get_db)):
     """Complete Google signup by setting name and password."""
-    # Note: the FastAPI Request object is named `request` (required by slowapi).
-    # The signup payload is renamed to `body` to avoid the name clash.
-    # Verify the signup token
+    # FastAPI Request arg is required by slowapi; payload renamed to `body` to avoid the name clash.
     try:
         payload = jwt.decode(body.signup_token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
@@ -222,25 +213,21 @@ def complete_signup(request: Request, body: CompleteSignupRequest, db: Session =
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid or expired signup token")
     
-    # Validate password
     is_valid, error_msg = validate_password(body.password)
     if not is_valid:
         raise HTTPException(status_code=400, detail=error_msg)
-    
-    # Validate name
+
     name = body.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
-    
-    # Find the user
+
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     if user.signup_completed:
         raise HTTPException(status_code=400, detail="Signup already completed")
-    
-    # Update user with name and password
+
     user.name = name
     user.password = hash_password(body.password)
     user.signup_completed = True
@@ -271,7 +258,6 @@ def google_login(request: GoogleAuthRequest, db: Session = Depends(get_db)):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid Google token")
     
-    # Find user by google_id or email
     db_user = db.query(models.User).filter(models.User.google_id == google_id).first()
     if not db_user:
         db_user = db.query(models.User).filter(models.User.email == google_email).first()
@@ -282,13 +268,12 @@ def google_login(request: GoogleAuthRequest, db: Session = Depends(get_db)):
     if not db_user.signup_completed:
         raise HTTPException(status_code=403, detail="Don't have an account yet ? Create one to continue.")
     
-    # Generate tokens
     access_token = create_access_token(data={"sub": str(db_user.id)})
     refresh_token = create_refresh_token(data={"sub": str(db_user.id)})
-    
+
     db_user.refresh_token = hash_refresh_token(refresh_token)
     db.commit()
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -323,7 +308,7 @@ def login(request: Request, user: UserAuth, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "user_id": db_user.id,
         "name": db_user.name,
-        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Return expiry in seconds
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
 @router.get("/profile")
@@ -378,13 +363,11 @@ def update_email_settings(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Validate timezone
     try:
         pytz.timezone(settings.timezone)
     except pytz.exceptions.UnknownTimeZoneError:
         raise HTTPException(status_code=400, detail=f"Invalid timezone: {settings.timezone}")
-    
-    # Parse reminder time if provided
+
     reminder_time = None
     if settings.email_reminder_time:
         try:
@@ -437,15 +420,13 @@ async def send_test_email_endpoint(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    """Send a test reminder email to the authenticated user."""
+    """Send a test reminder email to the authenticated user. Dev/local use only."""
     from scheduler import send_immediate_reminder
-    
     result = await send_immediate_reminder(user_id)
-    
     if result["success"]:
         return {"message": result["message"]}
-    else:
-        raise HTTPException(status_code=500, detail=result["message"])
+    raise HTTPException(status_code=500, detail=result["message"])
+
 
 @router.post("/refresh", response_model=TokenResponse)
 @limiter.limit("20/minute")  # max 20 refresh calls per IP per minute
@@ -462,7 +443,6 @@ def refresh_access_token(request: Request, refresh_request: RefreshTokenRequest,
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Generate new tokens
     new_access_token = create_access_token(data={"sub": str(user.id)})
     new_refresh_token = create_refresh_token(data={"sub": str(user.id)})
     

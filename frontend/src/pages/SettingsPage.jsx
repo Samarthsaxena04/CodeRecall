@@ -117,7 +117,6 @@ function SettingsPage() {
     setTestEmailLoading(true);
     setTestEmailSuccess(false);
     setEmailError("");
-
     try {
       await API.post("/send-test-email");
       setTestEmailSuccess(true);
@@ -383,8 +382,8 @@ function SettingsPage() {
             >
               {emailLoading ? "Saving..." : "Save Email Settings"}
             </button>
-            
-            {emailSettings.email_notifications_enabled && (
+
+            {import.meta.env.VITE_SHOW_TEST_EMAIL === 'true' && emailSettings.email_notifications_enabled && (
               <button
                 type="button"
                 onClick={handleSendTestEmail}

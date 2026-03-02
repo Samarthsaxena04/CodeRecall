@@ -62,7 +62,6 @@ def revise_question(
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
 
-    # Get user's custom intervals (fallback to defaults)
     user = db.query(models.User).filter(models.User.id == user_id).first()
     days_done = user.reminder_days_done if user and user.reminder_days_done is not None else 12
     days_help = user.reminder_days_help if user and user.reminder_days_help is not None else 5

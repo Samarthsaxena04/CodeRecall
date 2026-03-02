@@ -12,14 +12,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# ➕ Add Question
 @router.post("/questions")
 def add_question(
     question: QuestionCreate,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    # 1️⃣ Create Question
     new_question = models.Question(
         user_id=user_id,
         title=question.title,
@@ -31,7 +29,6 @@ def add_question(
     db.commit()
     db.refresh(new_question)
 
-    # 2️⃣ Add Tags (create if not exist)
     for tag_name in question.tags:
         tag_name = tag_name.strip()
 
@@ -48,19 +45,16 @@ def add_question(
         )
         db.add(question_tag)
 
-    # 3️⃣ Add Question Log (timestamp is automatically set by database)
     log = models.QuestionLog(
         question_id=new_question.id,
         user_id=user_id,
         status=question.status,
         is_revision=False
-        # timestamp will be auto-set by server_default=func.now()
     )
     db.add(log)
     
     logger.info(f"Added question log for user {user_id}, question {new_question.id}")
 
-    # 4️⃣ Schedule First Revision based on status (use user's custom intervals)
     user = db.query(models.User).filter(models.User.id == user_id).first()
     days_done = user.reminder_days_done if user and user.reminder_days_done is not None else 12
     days_help = user.reminder_days_help if user and user.reminder_days_help is not None else 5
@@ -85,7 +79,6 @@ def add_question(
     return {"message": "Question added and scheduled successfully"}
 
 
-# 📋 Get All Questions
 @router.get("/questions/all")
 def get_all_questions(
     db: Session = Depends(get_db),
