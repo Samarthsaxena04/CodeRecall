@@ -11,7 +11,6 @@ from alembic import op
 import sqlalchemy as sa
 
 
-# revision identifiers, used by Alembic.
 revision: str = 'add_reminder_intervals'
 down_revision: Union[str, Sequence[str], None] = 'f7b08431784c'
 branch_labels: Union[str, Sequence[str], None] = None

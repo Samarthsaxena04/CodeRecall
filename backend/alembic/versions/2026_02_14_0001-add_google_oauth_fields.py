@@ -11,7 +11,6 @@ from alembic import op
 import sqlalchemy as sa
 
 
-# revision identifiers, used by Alembic.
 revision: str = 'add_google_oauth'
 down_revision: Union[str, Sequence[str], None] = 'add_email_settings'
 branch_labels: Union[str, Sequence[str], None] = None

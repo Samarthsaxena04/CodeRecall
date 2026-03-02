@@ -80,6 +80,7 @@ logs/
 
 # Alembic compiled migrations
 alembic/versions/*.pyc
+backend/alembic/MIGRATIONS.md
 
 # MyPy
 .mypy_cache/
