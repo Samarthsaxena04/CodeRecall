@@ -64,11 +64,28 @@ class UserProfileWithSettings(BaseModel):
     email_notifications_enabled: bool
     email_reminder_time: Optional[str] = None  # Format: "HH:MM"
     timezone: str
+    reminder_days_done: int = 12
+    reminder_days_help: int = 5
+    reminder_days_fail: int = 3
 
 class EmailSettingsUpdate(BaseModel):
     email_notifications_enabled: bool
     email_reminder_time: Optional[str] = None  # Format: "HH:MM" (e.g., "09:00")
     timezone: str = "UTC"
+
+class ReminderIntervalsUpdate(BaseModel):
+    reminder_days_done: int = 12  # Days until next review when solved
+    reminder_days_help: int = 5   # Days until next review when needed help
+    reminder_days_fail: int = 3   # Days until next review when failed
+
+    @field_validator('reminder_days_done', 'reminder_days_help', 'reminder_days_fail')
+    @classmethod
+    def validate_days(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("Reminder interval must be at least 1 day")
+        if v > 30:
+            raise ValueError("Reminder interval cannot exceed 30 days")
+        return v
 
 class RevisionUpdate(BaseModel):
     status: Literal["done", "help", "fail"]

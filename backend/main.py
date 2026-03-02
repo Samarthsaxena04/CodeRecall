@@ -2,12 +2,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 import logging
 
 from config import FRONTEND_URL
+from limiter import limiter          # shared rate-limiter instance
 from routers import questions, revision, auth, stats
 from scheduler import start_scheduler, stop_scheduler
 
@@ -22,8 +22,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiter is defined in limiter.py and imported above
 
 
 @asynccontextmanager
@@ -83,11 +82,14 @@ async def home(request: Request):
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Azure App Service monitoring"""
+    import sqlalchemy
     from database import SessionLocal
+    db = SessionLocal()
     try:
-        db = SessionLocal()
-        db.execute(__import__('sqlalchemy').text('SELECT 1'))
-        db.close()
+        # db.close() is guaranteed to run in the finally block whether the
+        # query succeeds or throws — fixes the connection leak that existed
+        # when the except block returned early without closing the session.
+        db.execute(sqlalchemy.text('SELECT 1'))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {e}")
@@ -95,3 +97,5 @@ async def health_check():
             status_code=503,
             content={"status": "unhealthy", "database": "disconnected"}
         )
+    finally:
+        db.close()   # always runs — no more leaked connections

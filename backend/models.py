@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 
 
 
-class User(Base):
+class User(Base):#base is the declarative base from database.py that we use to define our models. It provides the necessary functionality to map our Python classes to database tables and manage the schema.
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -43,13 +43,14 @@ class Question(Base):
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     # Relationships
-    tags = relationship("Tag", secondary="question_tags", backref="questions", lazy="selectin")
-    logs = relationship("QuestionLog", backref="question", lazy="selectin", cascade="all, delete-orphan")
-    schedules = relationship("Schedule", backref="question", lazy="selectin", cascade="all, delete-orphan")
-
+    tags = relationship("Tag", secondary="question_tags", backref="questions", lazy="selectin") #many-to-many relationship for categorizing questions (e.g., arrays, dynamic programming)
+    logs = relationship("QuestionLog", backref="question", lazy="selectin", cascade="all, delete-orphan") #stores history of question status changes (solved, need help, failed) with timestamps
+    schedules = relationship("Schedule", backref="question", lazy="selectin", cascade="all, delete-orphan") #stores next review dates for spaced repetition based on user feedback (solved, need help, failed)
+    #selectin loading strategy for efficient querying of related tags, logs, and schedules when fetching questions. Cascade deletes to clean up related records when a question is removed.
+    #delete-orphan ensures that when a question is deleted, all associated logs and schedules are also removed to maintain data integrity.
 
 class Tag(Base):
-    __tablename__ = "tags"
+    __tablename__ = "tags" 
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
@@ -73,7 +74,7 @@ class QuestionLog(Base):
     timestamp = Column(TIMESTAMP, server_default=func.now())
 
 
-class Schedule(Base):
+class Schedule(Base): #stores next review dates for spaced repetition based on user feedback (solved, need help, failed)
     __tablename__ = "schedules"
 
     id = Column(Integer, primary_key=True, index=True)

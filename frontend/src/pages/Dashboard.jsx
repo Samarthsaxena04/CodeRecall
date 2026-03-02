@@ -121,6 +121,34 @@ function Dashboard({ userName }) {
     return 'bg-green-400';
   };
 
+  const getMonthLabels = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const labels = [];
+    const heatmapWeeks = generateHeatmap();
+    const MIN_SPACING = 4; // minimum weeks between labels
+    
+    let lastMonth = -1;
+    let lastWeekIndex = -MIN_SPACING;
+    
+    heatmapWeeks.forEach((week, weekIndex) => {
+      if (week.length > 0) {
+        const firstDay = week[0];
+        const currentMonth = firstDay.month;
+        
+        if (currentMonth !== lastMonth && weekIndex - lastWeekIndex >= MIN_SPACING) {
+          labels.push({
+            name: months[currentMonth],
+            weekIndex: weekIndex
+          });
+          lastMonth = currentMonth;
+          lastWeekIndex = weekIndex;
+        }
+      }
+    });
+    
+    return labels;
+  };
+
   const generateHeatmap = () => {
     const weeks = [];
     const dataMap = new Map();
@@ -176,32 +204,7 @@ function Dashboard({ userName }) {
     return weeks;
   };
 
-  const getMonthLabels = () => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const labels = [];
-    const heatmapWeeks = generateHeatmap();
-    
-    let lastMonth = -1;
-    
-    heatmapWeeks.forEach((week, weekIndex) => {
-      if (week.length > 0) {
-        const firstDay = week[0];
-        const currentMonth = firstDay.month;
-        
-        if (currentMonth !== lastMonth) {
-          if (weekIndex === 0 || lastMonth !== -1) {
-            labels.push({
-              name: months[currentMonth],
-              weekIndex: weekIndex
-            });
-          }
-          lastMonth = currentMonth;
-        }
-      }
-    });
-    
-    return labels;
-  };
+
 
   if (loading) {
     return (
@@ -390,7 +393,7 @@ function Dashboard({ userName }) {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <div className="inline-flex flex-col gap-4 min-w-full">
             <div className="flex relative pl-12" style={{ height: '10px' }}>
               {monthLabels.map((label, idx) => (

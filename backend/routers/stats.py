@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, cast, Date
+from sqlalchemy import func, cast
+from sqlalchemy import Date as sqlalchemy_date
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 import pytz
@@ -115,44 +116,51 @@ def stats_by_tags(
     return {tag: count for tag, count in result}
 
 
-# 📅 Daily activity heatmap - TIMEZONE AWARE VERSION
+# 📅 Daily activity heatmap — SQL-level aggregation (no Python-side row iteration)
 @router.get("/stats/heatmap")
 def stats_heatmap(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    # Get user's timezone
+    # Get user's timezone string and validate it.
     user = db.query(models.User).filter(models.User.id == user_id).first()
-    try:
-        user_tz = pytz.timezone(user.timezone) if user and user.timezone else pytz.UTC
-    except pytz.exceptions.UnknownTimeZoneError:
-        user_tz = pytz.UTC
+    user_tz_str = "UTC"
+    if user and user.timezone:
+        try:
+            pytz.timezone(user.timezone)   # validate — raises if unknown
+            user_tz_str = user.timezone
+        except pytz.exceptions.UnknownTimeZoneError:
+            pass  # fall back to UTC
 
-    # Get all question logs for this user
-    logs = db.query(models.QuestionLog).filter(
-        models.QuestionLog.user_id == user_id
-    ).all()
-    
-    # Group by date in user's timezone
-    date_counts = defaultdict(int)
-    
-    for log in logs:
-        if log.timestamp:
-            # Treat DB timestamp as UTC, convert to user's timezone
-            utc_time = log.timestamp.replace(tzinfo=pytz.UTC)
-            local_time = utc_time.astimezone(user_tz)
-            date_key = local_time.date().isoformat()
-            date_counts[date_key] += 1
-    
-    # Convert to list of dicts
+    # Previously: loaded ALL QuestionLog rows into Python, iterated, and
+    # grouped manually — O(n) memory usage that grows with every log entry.
+    #
+    # Now: the entire GROUP BY happens inside PostgreSQL.
+    # Python receives one small row per unique date — constant memory cost.
+    #
+    # func.timezone(tz, func.timezone('UTC', timestamp)):
+    #   Step 1 — func.timezone('UTC', naive_ts)  → tells Postgres the stored
+    #             timestamp is UTC, producing a timestamptz.
+    #   Step 2 — func.timezone(user_tz_str, timestamptz) → converts to the
+    #             user's local time before truncating to a date.
+    rows = (
+        db.query(
+            cast(
+                func.timezone(user_tz_str, func.timezone("UTC", models.QuestionLog.timestamp)),
+                sqlalchemy_date
+            ).label("date"),
+            func.count(models.QuestionLog.id).label("count"),
+        )
+        .filter(models.QuestionLog.user_id == user_id)
+        .group_by("date")
+        .order_by("date")
+        .all()
+    )
+
     heatmap_data = [
-        {
-            "date": date_str,
-            "count": count
-        }
-        for date_str, count in sorted(date_counts.items())
+        {"date": row.date.isoformat(), "count": row.count}
+        for row in rows
     ]
-    
+
     logger.debug(f"Heatmap data for user {user_id}: {len(heatmap_data)} entries")
-    
     return heatmap_data

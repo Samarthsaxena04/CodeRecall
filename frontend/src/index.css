@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Hide scrollbar visually while still allowing scroll if needed */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 .nav-btn {
   @apply px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition;
 }

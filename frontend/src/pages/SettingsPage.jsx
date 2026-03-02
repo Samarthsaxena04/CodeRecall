@@ -25,14 +25,22 @@ function SettingsPage() {
     email_reminder_time: "09:00",
     timezone: "UTC"
   });
+  const [reminderIntervals, setReminderIntervals] = useState({
+    reminder_days_done: 12,
+    reminder_days_help: 5,
+    reminder_days_fail: 3
+  });
   const [loading, setLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [intervalsLoading, setIntervalsLoading] = useState(false);
   const [testEmailLoading, setTestEmailLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [intervalsSuccess, setIntervalsSuccess] = useState(false);
   const [testEmailSuccess, setTestEmailSuccess] = useState(false);
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [intervalsError, setIntervalsError] = useState("");
 
   useEffect(() => {
     fetchProfile();
@@ -55,6 +63,11 @@ function SettingsPage() {
         email_notifications_enabled: response.data.email_notifications_enabled ?? true,
         email_reminder_time: response.data.email_reminder_time || "09:00",
         timezone: response.data.timezone || "UTC"
+      });
+      setReminderIntervals({
+        reminder_days_done: response.data.reminder_days_done ?? 12,
+        reminder_days_help: response.data.reminder_days_help ?? 5,
+        reminder_days_fail: response.data.reminder_days_fail ?? 3
       });
     } catch (err) {
       console.error("Failed to fetch email settings");
@@ -116,6 +129,27 @@ function SettingsPage() {
     }
   };
 
+  const handleIntervalsSubmit = async (e) => {
+    e.preventDefault();
+    setIntervalsLoading(true);
+    setIntervalsError("");
+    setIntervalsSuccess(false);
+
+    try {
+      await API.put("/reminder-intervals", {
+        reminder_days_done: Number(reminderIntervals.reminder_days_done),
+        reminder_days_help: Number(reminderIntervals.reminder_days_help),
+        reminder_days_fail: Number(reminderIntervals.reminder_days_fail)
+      });
+      setIntervalsSuccess(true);
+      setTimeout(() => setIntervalsSuccess(false), 3000);
+    } catch (err) {
+      setIntervalsError(err.response?.data?.detail || "Failed to update reminder intervals");
+    } finally {
+      setIntervalsLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-2xl mx-auto m-1">
       <div className="mb-8">
@@ -165,6 +199,90 @@ function SettingsPage() {
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Spaced Repetition Intervals */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Revision Intervals</h3>
+        <p className="text-sm text-gray-400 mb-6">
+          Customize how many days until a question appears again for revision based on your performance
+        </p>
+        
+        <form onSubmit={handleIntervalsSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <label className="text-sm font-medium text-gray-300">Solved</label>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={reminderIntervals.reminder_days_done}
+                onChange={(e) => setReminderIntervals({ 
+                  ...reminderIntervals, 
+                  reminder_days_done: e.target.value 
+                })}
+                className="w-full bg-gray-800 border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <label className="text-sm font-medium text-gray-300">Needed Help</label>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={reminderIntervals.reminder_days_help}
+                onChange={(e) => setReminderIntervals({ 
+                  ...reminderIntervals, 
+                  reminder_days_help: e.target.value 
+                })}
+                className="w-full bg-gray-800 border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+
+            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <label className="text-sm font-medium text-gray-300">Failed</label>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={reminderIntervals.reminder_days_fail}
+                onChange={(e) => setReminderIntervals({ 
+                  ...reminderIntervals, 
+                  reminder_days_fail: e.target.value 
+                })}
+                className="w-full bg-gray-800 border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </div>
+
+          {intervalsError && (
+            <p className="text-red-400 text-sm">* {intervalsError}</p>
+          )}
+
+          {intervalsSuccess && (
+            <p className="text-green-400 text-sm">Revision intervals updated successfully!</p>
+          )}
+
+          <div className="pt-4 border-t border-gray-800">
+            <button
+              type="submit"
+              disabled={intervalsLoading}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {intervalsLoading ? "Saving..." : "Save Intervals"}
             </button>
           </div>
         </form>

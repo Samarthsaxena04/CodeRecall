@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from limiter import limiter
 import bcrypt
 import hashlib
 from datetime import datetime, timedelta, time, timezone
@@ -98,7 +99,8 @@ def verify_refresh_token(token: str, db: Session):
         return None
 
 @router.post("/register")
-def register(user: UserAuth, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")   # max 5 registration attempts per IP per minute
+def register(request: Request, user: UserAuth, db: Session = Depends(get_db)):
     # Validate password strength
     is_valid, error_msg = validate_password(user.password)
     if not is_valid:
@@ -204,11 +206,14 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/complete-signup")
-def complete_signup(request: CompleteSignupRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")   # max 5 attempts per IP per minute
+def complete_signup(request: Request, body: CompleteSignupRequest, db: Session = Depends(get_db)):
     """Complete Google signup by setting name and password."""
+    # Note: the FastAPI Request object is named `request` (required by slowapi).
+    # The signup payload is renamed to `body` to avoid the name clash.
     # Verify the signup token
     try:
-        payload = jwt.decode(request.signup_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(body.signup_token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         token_type = payload.get("type")
         
@@ -218,12 +223,12 @@ def complete_signup(request: CompleteSignupRequest, db: Session = Depends(get_db
         raise HTTPException(status_code=400, detail="Invalid or expired signup token")
     
     # Validate password
-    is_valid, error_msg = validate_password(request.password)
+    is_valid, error_msg = validate_password(body.password)
     if not is_valid:
         raise HTTPException(status_code=400, detail=error_msg)
     
     # Validate name
-    name = request.name.strip()
+    name = body.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
     
@@ -237,7 +242,7 @@ def complete_signup(request: CompleteSignupRequest, db: Session = Depends(get_db
     
     # Update user with name and password
     user.name = name
-    user.password = hash_password(request.password)
+    user.password = hash_password(body.password)
     user.signup_completed = True
     db.commit()
     
@@ -295,7 +300,8 @@ def google_login(request: GoogleAuthRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(user: UserAuth, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")  # max 10 login attempts per IP per minute — blocks bcrypt DoS
+def login(request: Request, user: UserAuth, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
 
     if not db_user or not db_user.password or not verify_password(user.password, db_user.password):
@@ -442,7 +448,8 @@ async def send_test_email_endpoint(
         raise HTTPException(status_code=500, detail=result["message"])
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_access_token(refresh_request: RefreshTokenRequest, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")  # max 20 refresh calls per IP per minute
+def refresh_access_token(request: Request, refresh_request: RefreshTokenRequest, db: Session = Depends(get_db)):
     user_id = verify_refresh_token(refresh_request.refresh_token, db)
     
     if user_id is None:

@@ -62,12 +62,18 @@ def revise_question(
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
 
+    # Get user's custom intervals (fallback to defaults)
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    days_done = user.reminder_days_done if user and user.reminder_days_done is not None else 12
+    days_help = user.reminder_days_help if user and user.reminder_days_help is not None else 5
+    days_fail = user.reminder_days_fail if user and user.reminder_days_fail is not None else 3
+
     if revision.status == "done":
-        next_date = date.today() + timedelta(days=12)
+        next_date = date.today() + timedelta(days=days_done)
     elif revision.status == "help":
-        next_date = date.today() + timedelta(days=5)
+        next_date = date.today() + timedelta(days=days_help)
     else:
-        next_date = date.today() + timedelta(days=3)
+        next_date = date.today() + timedelta(days=days_fail)
 
     schedule.next_review_date = next_date
 

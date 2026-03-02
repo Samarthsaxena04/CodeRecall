@@ -60,13 +60,18 @@ def add_question(
     
     logger.info(f"Added question log for user {user_id}, question {new_question.id}")
 
-    # 4️⃣ Schedule First Revision based on status
+    # 4️⃣ Schedule First Revision based on status (use user's custom intervals)
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    days_done = user.reminder_days_done if user and user.reminder_days_done is not None else 12
+    days_help = user.reminder_days_help if user and user.reminder_days_help is not None else 5
+    days_fail = user.reminder_days_fail if user and user.reminder_days_fail is not None else 3
+
     if question.status == "done":
-        days_until_review = 12
+        days_until_review = days_done
     elif question.status == "help":
-        days_until_review = 5
+        days_until_review = days_help
     else:  # fail
-        days_until_review = 3
+        days_until_review = days_fail
     
     schedule = models.Schedule(
         question_id=new_question.id,
@@ -86,10 +91,12 @@ def get_all_questions(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    # Tags are eagerly loaded via the relationship (lazy="selectin")
+    # Tags are eagerly loaded via the relationship (lazy="selectin").
+    # .limit(500) prevents a single user with thousands of questions from
+    # loading everything into memory at once and crashing the server.
     questions = db.query(models.Question).filter(
         models.Question.user_id == user_id
-    ).order_by(models.Question.created_at.desc()).all()
+    ).order_by(models.Question.created_at.desc()).limit(500).all()
 
     result = []
     for q in questions:
