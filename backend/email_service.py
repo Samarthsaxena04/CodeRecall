@@ -14,7 +14,6 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# SendGrid Configuration
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "noreply@coderecall.com")
 SENDGRID_FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "CodeRecall")
@@ -31,17 +30,7 @@ def send_revision_reminder_email(
     user_name: str,
     questions: List[Dict]
 ) -> bool:
-    """
-    Send a revision reminder email to a user.
-    
-    Args:
-        to_email: Recipient's email address
-        user_name: User's name for personalization
-        questions: List of questions due for revision with title, link, platform, tags
-        
-    Returns:
-        bool: True if email sent successfully, False otherwise
-    """
+    """Build and send an HTML revision reminder email via SendGrid. Returns True on success."""
     if not is_email_configured():
         logger.warning("Email service not configured. Skipping email send.")
         return False
@@ -51,10 +40,8 @@ def send_revision_reminder_email(
         return True
     
     try:
-        # Build the question list HTML
         question_rows = ""
         for i, q in enumerate(questions, 1):
-            # Ensure q is a dictionary
             if not isinstance(q, dict):
                 logger.warning(f"Question {i} is not a dictionary: {type(q)} - {q}")
                 continue
@@ -165,7 +152,6 @@ You're receiving this because you enabled revision reminders.
 Manage settings: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/settings
 """
         
-        # Create the email message
         message = Mail()
         message.from_email = Email(SENDGRID_FROM_EMAIL, SENDGRID_FROM_NAME)
         message.subject = f"CodeRecall: {len(questions)} question{'s' if len(questions) > 1 else ''} to revise today"
@@ -176,7 +162,6 @@ Manage settings: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/settings
             Content("text/html", html_content)
         ]
         
-        # Send the email
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
         
@@ -193,16 +178,7 @@ Manage settings: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/settings
 
 
 def send_test_email(to_email: str, user_name: str = "Test User") -> bool:
-    """
-    Send a test email to verify email configuration.
-    
-    Args:
-        to_email: Recipient's email address
-        user_name: User's name for personalization
-        
-    Returns:
-        bool: True if email sent successfully, False otherwise
-    """
+    """Send a test email with dummy questions to verify the SendGrid configuration."""
     test_questions = [
         {
             "title": "Two Sum",

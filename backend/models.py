@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 
 
 
-class User(Base):#base is the declarative base from database.py that we use to define our models. It provides the necessary functionality to map our Python classes to database tables and manage the schema.
+class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -42,12 +42,10 @@ class Question(Base):
     notes = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
-    # Relationships
-    tags = relationship("Tag", secondary="question_tags", backref="questions", lazy="selectin") #many-to-many relationship for categorizing questions (e.g., arrays, dynamic programming)
-    logs = relationship("QuestionLog", backref="question", lazy="selectin", cascade="all, delete-orphan") #stores history of question status changes (solved, need help, failed) with timestamps
-    schedules = relationship("Schedule", backref="question", lazy="selectin", cascade="all, delete-orphan") #stores next review dates for spaced repetition based on user feedback (solved, need help, failed)
-    #selectin loading strategy for efficient querying of related tags, logs, and schedules when fetching questions. Cascade deletes to clean up related records when a question is removed.
-    #delete-orphan ensures that when a question is deleted, all associated logs and schedules are also removed to maintain data integrity.
+    tags = relationship("Tag", secondary="question_tags", backref="questions", lazy="selectin")
+    logs = relationship("QuestionLog", backref="question", lazy="selectin", cascade="all, delete-orphan")
+    schedules = relationship("Schedule", backref="question", lazy="selectin", cascade="all, delete-orphan")
+    # selectin avoids N+1 queries; delete-orphan cascades removal of logs/schedules when a question is deleted.
 
 class Tag(Base):
     __tablename__ = "tags" 
@@ -74,7 +72,7 @@ class QuestionLog(Base):
     timestamp = Column(TIMESTAMP, server_default=func.now())
 
 
-class Schedule(Base): #stores next review dates for spaced repetition based on user feedback (solved, need help, failed)
+class Schedule(Base):
     __tablename__ = "schedules"
 
     id = Column(Integer, primary_key=True, index=True)

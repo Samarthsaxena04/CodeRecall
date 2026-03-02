@@ -81,6 +81,11 @@ logs/
 # Alembic compiled migrations
 alembic/versions/*.pyc
 backend/alembic/MIGRATIONS.md
+backend/test_email_setup.py
+
+# Unused Vite template assets
+frontend/public/vite.svg
+frontend/src/assets/react.svg
 
 # MyPy
 .mypy_cache/

@@ -11,8 +11,6 @@ if not DATABASE_URL:
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-# Azure PostgreSQL Flexible Server configuration
-# Append sslmode=require only in production (local dev PostgreSQL typically doesn't use SSL)
 if ENVIRONMENT == "production" and "sslmode" not in DATABASE_URL:
     separator = "&" if "?" in DATABASE_URL else "?"
     DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
@@ -27,7 +25,7 @@ if ENVIRONMENT == "production":
         max_overflow=10,
         pool_timeout=30,
         pool_recycle=1800,  # Recycle connections every 30 min (Azure idle timeout)
-        pool_pre_ping=True,  # Verify connections before use
+        pool_pre_ping=True,
     )
 else:
     engine = create_engine(DATABASE_URL)

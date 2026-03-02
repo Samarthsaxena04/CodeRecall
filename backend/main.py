@@ -22,18 +22,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Rate limiter is defined in limiter.py and imported above
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     logger.info("Application starting up...")
     logger.info(f"CORS allowed origin: {FRONTEND_URL}")
     start_scheduler()
     logger.info("Email reminder scheduler started")
     yield
-    # Shutdown
     logger.info("Application shutting down...")
     stop_scheduler()
     logger.info("Email reminder scheduler stopped")
@@ -41,11 +37,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CodeRecall API", version="1.0.0", lifespan=lifespan)
 
-# Add rate limiter to app state
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_URL],
@@ -54,7 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global exception handler
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Global exception: {exc}", exc_info=True)
@@ -63,7 +57,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"}
     )
 
-# Include routers
 app.include_router(auth.router, tags=["Authentication"])
 app.include_router(questions.router, tags=["Questions"])
 app.include_router(revision.router, tags=["Revision"])
