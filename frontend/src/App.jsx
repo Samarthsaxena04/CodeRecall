@@ -12,7 +12,7 @@ import History from "./pages/History";
 import SettingsPage from "./pages/SettingsPage";
 import logoImage from './assets/logo.png';
 
-import { Home, Plus, BarChart3, History as HistoryIcon, Settings, ChevronDown, LogOut, Code, Menu, X } from 'lucide-react';
+import { Home, Plus, BarChart3, History as HistoryIcon, Settings, ChevronDown, LogOut, Menu, X } from 'lucide-react';
 
 function App() {
   const { user, logout, loading } = useAuth();
@@ -263,6 +263,7 @@ function App() {
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/revise" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

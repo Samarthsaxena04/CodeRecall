@@ -85,7 +85,6 @@ function Dashboard({ userName }) {
         solved,
         needHelp,
         failed,
-        streak: 7
       });
 
     } catch (err) {
@@ -98,7 +97,7 @@ function Dashboard({ userName }) {
   const handleRevision = async (id, status) => {
     try {
       await API.post(`/questions/${id}/revise`, { status });
-      setRevisions(revisions.filter(r => r.question_id !== id));
+      setRevisions(prev => prev.filter(r => r.question_id !== id));
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to record revision");
     }

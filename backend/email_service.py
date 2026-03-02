@@ -103,7 +103,7 @@ def send_revision_reminder_email(
                     
                     <!-- CTA Button -->
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="{os.getenv('FRONTEND_URL', 'http://localhost:5173')}/revise" 
+                        <a href="{os.getenv('FRONTEND_URL', 'http://localhost:5173')}/" 
                            style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
                             Start Revision →
                         </a>
@@ -143,7 +143,7 @@ You have {len(questions)} question{"s" if len(questions) > 1 else ""} due for re
                 plain_text_content += f"{i}. {q.get('title', 'Untitled')} ({q.get('platform', 'Unknown')})\n   Link: {q.get('link', 'N/A')}\n\n"
         
         plain_text_content += f"""
-Start your revision now: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/revise
+Start your revision now: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/
 
 Keep up the great work!
 
@@ -177,21 +177,3 @@ Manage settings: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/settings
         return False
 
 
-def send_test_email(to_email: str, user_name: str = "Test User") -> bool:
-    """Send a test email with dummy questions to verify the SendGrid configuration."""
-    test_questions = [
-        {
-            "title": "Two Sum",
-            "link": "https://leetcode.com/problems/two-sum/",
-            "platform": "LeetCode",
-            "tags": ["Array", "Hash Table"]
-        },
-        {
-            "title": "Valid Parentheses",
-            "link": "https://leetcode.com/problems/valid-parentheses/",
-            "platform": "LeetCode",
-            "tags": ["String", "Stack"]
-        }
-    ]
-    
-    return send_revision_reminder_email(to_email, user_name, test_questions)
