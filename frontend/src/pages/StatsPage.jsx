@@ -68,7 +68,6 @@ function StatsPage() {
         <p className="text-gray-400">Track your DSA learning journey</p>
       </div>
 
-      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg rounded-xl p-6 text-white">
           <p className="text-blue-100 text-sm font-medium mb-1">Total Attempts</p>
@@ -91,7 +90,6 @@ function StatsPage() {
         </div>
       </div>
 
-      {/* Status Breakdown */}
       <div className="bg-gray-900 border border-gray-800 shadow-lg rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-4">Status Breakdown</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -110,7 +108,6 @@ function StatsPage() {
         </div>
       </div>
 
-      {/* Weak Tags */}
       {Object.keys(tags).length > 0 && (
         <div className="bg-gray-900 border border-gray-800 shadow-lg rounded-xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4">
@@ -135,7 +132,6 @@ function StatsPage() {
         </div>
       )}
 
-      {/* Activity Heatmap */}
       {heatmap.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 shadow-lg rounded-xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4">Activity Heatmap</h3>

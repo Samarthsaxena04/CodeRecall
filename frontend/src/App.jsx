@@ -29,7 +29,7 @@ function App() {
         setUserName(response.data.name);
         localStorage.setItem("userName", response.data.name);
       } catch (err) {
-        console.log("Could not fetch user profile");
+        // silently ignore profile fetch errors
       }
     };
 
@@ -71,7 +71,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex">
-      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -79,9 +78,7 @@ function App() {
         />
       )}
 
-      {/* Sidebar - Desktop */}
       <div className="hidden lg:flex w-64 bg-gray-900 border-r border-gray-800 flex-col">
-        {/* Logo */}
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <img
@@ -93,7 +90,6 @@ function App() {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4">
           <div className="space-y-2">
             {navigation.map((item) => {
@@ -153,7 +149,6 @@ function App() {
         </div>
       </div>
 
-      {/* Sidebar - Mobile */}
       <div className={`fixed inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-50 transform transition-transform duration-300 lg:hidden ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
@@ -241,9 +236,7 @@ function App() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Mobile Header */}
         <div className="lg:hidden bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <button
@@ -260,7 +253,7 @@ function App() {
               />
               <span className="text-lg font-bold text-white">CodeRecall</span>
             </div>
-            <div className="w-6" /> {/* Spacer for centering */}
+            <div className="w-6" />
           </div>
         </div>
 

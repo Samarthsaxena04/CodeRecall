@@ -15,7 +15,6 @@ export const ThemeProvider = ({ children }) => {
         document.documentElement.classList.remove("dark");
       }
       
-      console.log("Theme toggled to:", newValue ? "DARK" : "LIGHT");
       return newValue;
     });
   };

@@ -30,7 +30,6 @@ export default function Register({ goToLogin }) {
     return null;
   };
 
-  // --- Google signup step 1: handle credential from Google popup ---
   const handleGoogleCredential = async (credentialResponse) => {
     setError("");
     setLoading(true);
@@ -46,7 +45,6 @@ export default function Register({ goToLogin }) {
     }
   };
 
-  // --- Google signup step 2: complete with name + password ---
   const handleCompleteSignup = async (e) => {
     e.preventDefault();
     setError("");
@@ -80,7 +78,6 @@ export default function Register({ goToLogin }) {
     }
   };
 
-  // ─── Step: Complete Signup (after Google auth) ───
   if (step === "complete-signup") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 py-8 px-4">
@@ -183,7 +180,6 @@ export default function Register({ goToLogin }) {
     );
   }
 
-  // ─── Step: Google Sign Up (main screen) ───
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 py-8 px-4">
       <div className="bg-slate-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
@@ -193,7 +189,6 @@ export default function Register({ goToLogin }) {
         </div>
 
         <div className="space-y-4">
-          {/* Google Sign Up */}
           <div className="flex justify-center">
             {!scriptLoadedSuccessfully ? (
               <div className="h-[44px] w-[380px] rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
@@ -231,6 +226,3 @@ export default function Register({ goToLogin }) {
     </div>
   );
 }
-
-
-// No additional components needed - GoogleLogin is imported directly

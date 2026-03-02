@@ -11,7 +11,6 @@ export default function Login({ goToRegister }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Load saved email on component mount
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
@@ -28,7 +27,6 @@ export default function Login({ goToRegister }) {
     try {
       await login(email, password);
       
-      // Save email if "Remember Me" is checked
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       } else {
@@ -49,7 +47,6 @@ export default function Login({ goToRegister }) {
             <p className="text-sm text-slate-400">Sign in to continue your DSA journey</p>
         </div>
 
-        {/* Google Sign In */}
         <div className="flex justify-center mb-2">
           {!scriptLoadedSuccessfully ? (
             <div className="h-[40px] w-[380px] rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
@@ -79,7 +76,6 @@ export default function Login({ goToRegister }) {
           )}
         </div>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-1">
           <div className="flex-1 h-px bg-slate-600" />
           <span className="text-sm text-slate-400">or</span>
@@ -121,7 +117,6 @@ export default function Login({ goToRegister }) {
             />
           </div>
 
-          {/* Remember Me Checkbox */}
           <div className="flex items-center">
             <input
               type="checkbox"
