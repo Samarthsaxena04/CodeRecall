@@ -54,7 +54,7 @@ export default function Login({ goToRegister }) {
               <div className="h-3 w-32 rounded bg-slate-600" />
             </div>
           ) : (
-            <div className="w-full overflow-hidden rounded">
+            <div className="w-full overflow-x-hidden">
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
                   setError("");
