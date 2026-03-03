@@ -1,7 +1,7 @@
 #!/bin/bash
 # Azure App Service startup script for FastAPI backend
-
-cd /home/site/wwwroot
+# NOTE: Do NOT cd to /home/site/wwwroot — Oryx extracts the app to a temp dir
+# and sets CWD there before invoking this script. alembic.ini and main.py live there.
 
 echo "=== Starting CodeRecall API ==="
 echo "Python: $(python --version)"
