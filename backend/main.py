@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 import logging
 
-from config import FRONTEND_URL
+from config import FRONTEND_URLS
 from limiter import limiter          # shared rate-limiter instance
 from routers import questions, revision, auth, stats
 from scheduler import start_scheduler, stop_scheduler
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application starting up...")
-    logger.info(f"CORS allowed origin: {FRONTEND_URL}")
+    logger.info(f"CORS allowed origins: {FRONTEND_URLS}")
     start_scheduler()
     logger.info("Email reminder scheduler started")
     yield
@@ -42,7 +42,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=FRONTEND_URLS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

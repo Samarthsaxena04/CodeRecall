@@ -25,6 +25,13 @@ if not _secret_key:
 if not _frontend_url:
     raise ValueError("FRONTEND_URL environment variable is not set!")
 
+
+def _parse_origins(value: str) -> list[str]:
+    # Support a single URL or a comma-separated list (useful for Azure SWA
+    # production + preview/staging URLs).
+    return [origin.strip() for origin in value.split(",") if origin.strip()]
+
 # Export as str (not str|None) so Pylance doesn't complain in every file that imports these
 SECRET_KEY: str = _secret_key
 FRONTEND_URL: str = _frontend_url
+FRONTEND_URLS: list[str] = _parse_origins(_frontend_url)
