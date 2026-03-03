@@ -189,22 +189,24 @@ export default function Register({ goToLogin }) {
         </div>
 
         <div className="space-y-4">
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full">
             {!scriptLoadedSuccessfully ? (
-              <div className="h-[44px] w-[380px] rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
+              <div className="h-[44px] w-full rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-slate-600" />
                 <div className="h-3 w-32 rounded bg-slate-600" />
               </div>
             ) : (
-              <GoogleLogin
-                onSuccess={handleGoogleCredential}
-                onError={() => setError("Google sign-up failed.")}
-                text="signup_with"
-                shape="rectangular"
-                theme="filled_black"
-                size="large"
-                width="380"
-              />
+              <div className="w-full overflow-hidden rounded">
+                <GoogleLogin
+                  onSuccess={handleGoogleCredential}
+                  onError={() => setError("Google sign-up failed.")}
+                  text="signup_with"
+                  shape="rectangular"
+                  theme="filled_black"
+                  size="large"
+                  width="400"
+                />
+              </div>
             )}
           </div>
 

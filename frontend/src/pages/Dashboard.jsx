@@ -218,15 +218,15 @@ function Dashboard({ userName }) {
   const monthLabels = getMonthLabels();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {userName} 👋</h1>
-          <p className="text-gray-400">Track your DSA progress and master algorithms with spaced repetition</p>
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex justify-between items-start gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Welcome back, {userName} 👋</h1>
+          <p className="text-gray-400 text-sm sm:text-base">Track your DSA progress and master algorithms with spaced repetition</p>
         </div>
         <button 
           onClick={() => navigate('/add')}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition"
+          className="px-3 py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition flex-shrink-0 text-sm sm:text-base"
         >
           <Plus size={20} />
           Quick Add
@@ -235,12 +235,12 @@ function Dashboard({ userName }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-gray-900 rounded-xl border border-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
+          <div className="flex justify-between items-start sm:items-center mb-4 gap-3">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-white">Active Revisions</h2>
               <p className="text-sm text-gray-400">Questions due for spaced repetition</p>
             </div>
-            <span className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm">
+            <span className="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0">
               {revisions.length} Pending
             </span>
           </div>
@@ -371,22 +371,22 @@ function Dashboard({ userName }) {
         </div>
       </div>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-7">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 sm:p-7">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
               {stats ? `${stats.total} submissions in the last year` : 'Activity Heatmap'}
             </h2>
             <p className="text-sm text-gray-400 mt-1">Your coding consistency over the past year</p>
           </div>
-          <div className="flex items-center gap-3 text-sm text-gray-400">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-400">
             <span>Less</span>
-            <div className="flex gap-2">
-              <div className="w-4 h-4 rounded border border-gray-700 bg-gray-800" />
-              <div className="w-4 h-4 rounded bg-green-900/60" />
-              <div className="w-4 h-4 rounded bg-green-700/80" />
-              <div className="w-4 h-4 rounded bg-green-600" />
-              <div className="w-4 h-4 rounded bg-green-500" />
+            <div className="flex gap-1.5 sm:gap-2">
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border border-gray-700 bg-gray-800" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded bg-green-900/60" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded bg-green-700/80" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded bg-green-600" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded bg-green-500" />
             </div>
             <span>More</span>
           </div>

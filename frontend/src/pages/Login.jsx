@@ -47,32 +47,34 @@ export default function Login({ goToRegister }) {
             <p className="text-sm text-slate-400">Sign in to continue your DSA journey</p>
         </div>
 
-        <div className="flex justify-center mb-2">
+        <div className="flex justify-center mb-2 w-full">
           {!scriptLoadedSuccessfully ? (
-            <div className="h-[40px] w-[380px] rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
+            <div className="h-[40px] w-full rounded bg-slate-700/50 animate-pulse flex items-center justify-center gap-2">
               <div className="w-5 h-5 rounded-full bg-slate-600" />
               <div className="h-3 w-32 rounded bg-slate-600" />
             </div>
           ) : (
-            <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                setError("");
-                setLoading(true);
-                try {
-                  await googleLogin(credentialResponse.credential);
-                } catch (err) {
-                  setError(err.response?.data?.detail || "Google sign-in failed.");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              onError={() => setError("Google sign-in failed.")}
-              text="signin_with"
-              shape="rectangular"
-              theme="filled_black"
-              size="medium"
-              width="380"
-            />
+            <div className="w-full overflow-hidden rounded">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  setError("");
+                  setLoading(true);
+                  try {
+                    await googleLogin(credentialResponse.credential);
+                  } catch (err) {
+                    setError(err.response?.data?.detail || "Google sign-in failed.");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                onError={() => setError("Google sign-in failed.")}
+                text="signin_with"
+                shape="rectangular"
+                theme="filled_black"
+                size="medium"
+                width="400"
+              />
+            </div>
           )}
         </div>
 

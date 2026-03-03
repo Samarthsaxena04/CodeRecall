@@ -56,9 +56,9 @@ function History() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto m-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Question History</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Question History</h2>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           {questions.length} total question{questions.length !== 1 ? "s" : ""} tracked
         </p>
