@@ -1,5 +1,8 @@
 #!/bin/bash
+set -e  # Stop immediately if any command fails (e.g. alembic errors won't be silently ignored)
 # Azure App Service startup script for FastAPI backend
+
+cd /home/site/wwwroot
 
 # Run database migrations
 python -m alembic upgrade head
