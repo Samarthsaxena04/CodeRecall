@@ -111,7 +111,8 @@ def register(request: Request, user: UserAuth, db: Session = Depends(get_db)):
         name=user.name or "User",
         password=hash_password(user.password),
         email_verified=False,
-        signup_completed=True
+        signup_completed=True,
+        email_reminder_time=time(9, 0)
     )
     db.add(new_user)
     db.commit()
@@ -184,7 +185,8 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
         password=None,
         google_id=google_id,
         email_verified=True,
-        signup_completed=False
+        signup_completed=False,
+        email_reminder_time=time(9, 0)
     )
     db.add(new_user)
     db.commit()

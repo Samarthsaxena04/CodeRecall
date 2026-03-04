@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, Date, Time, TIMES
 from sqlalchemy.orm import relationship
 from database import Base
 from sqlalchemy.sql import func
+from datetime import time
 
 
 
@@ -22,7 +23,7 @@ class User(Base):
 
     # Email notification settings
     email_notifications_enabled = Column(Boolean, default=True)
-    email_reminder_time = Column(Time, nullable=True)  # User's preferred reminder time (HH:MM)
+    email_reminder_time = Column(Time, default=time(9, 0))  # User's preferred reminder time (HH:MM)
     timezone = Column(String, default="UTC")
 
     # Custom spaced repetition intervals (in days)
