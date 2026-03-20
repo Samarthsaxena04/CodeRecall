@@ -252,7 +252,7 @@ function Dashboard({ userName }) {
               <p className="text-gray-400">No questions to revise today</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-[60vh] min-h-[220px] overflow-y-auto pr-1 space-y-3 dark-scrollbar">
               {revisions.map((question) => (
                 <div key={question.question_id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-3">

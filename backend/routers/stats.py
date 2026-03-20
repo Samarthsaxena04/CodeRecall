@@ -116,10 +116,11 @@ def stats_heatmap(
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     user_tz_str = "UTC"
-    if user and user.timezone:
+    timezone_value = getattr(user, "timezone", None)
+    if isinstance(timezone_value, str) and timezone_value:
         try:
-            pytz.timezone(user.timezone)   # validate — raises if unknown
-            user_tz_str = user.timezone
+            pytz.timezone(timezone_value)   # validate — raises if unknown
+            user_tz_str = timezone_value
         except pytz.exceptions.UnknownTimeZoneError:
             pass  # fall back to UTC
 

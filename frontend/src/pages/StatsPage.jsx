@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import API from "../api";
 
 function StatsPage() {
   const [overview, setOverview] = useState({});
   const [tags, setTags] = useState({});
   const [heatmap, setHeatmap] = useState([]);
+  const [hoveredPoint, setHoveredPoint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -32,6 +33,79 @@ function StatsPage() {
     }
   };
 
+  const totalAttempts = Object.values(overview).reduce((sum, count) => sum + count, 0);
+  const doneCount = overview.done || 0;
+  const successRate = totalAttempts > 0 ? Math.round((doneCount / totalAttempts) * 100) : 0;
+  const retentionRate = successRate;
+
+  const monthlyActivity = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    const points = [];
+    const monthIndexByKey = new Map();
+
+    for (let i = 0; i < 12; i += 1) {
+      const monthDate = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth() + 1;
+      const key = `${year}-${String(month).padStart(2, "0")}`;
+
+      points.push({
+        key,
+        label: monthDate.toLocaleString("en-US", { month: "short" }),
+        value: 0,
+      });
+
+      monthIndexByKey.set(key, i);
+    }
+
+    heatmap.forEach((item) => {
+      const dt = new Date(item.date);
+      if (Number.isNaN(dt.getTime())) return;
+
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+      const idx = monthIndexByKey.get(key);
+      if (idx !== undefined) {
+        points[idx].value += item.count;
+      }
+    });
+
+    return points;
+  }, [heatmap]);
+
+  const maxMonthlyValue = Math.max(...monthlyActivity.map((m) => m.value), 1);
+  const yAxisMax = Math.max(10, Math.ceil(maxMonthlyValue / 10) * 10);
+  const yAxisStep = Math.max(1, yAxisMax / 5);
+  const yAxisTicks = [0, 1, 2, 3, 4, 5].map((i) => i * yAxisStep).reverse();
+
+  const chartWidth = 920;
+  const chartHeight = 220;
+  const chartPadding = 30;
+  const chartLeftPadding = 44;
+  const chartRightPadding = chartPadding;
+  const stepX = (chartWidth - chartLeftPadding - chartRightPadding) / Math.max(monthlyActivity.length - 1, 1);
+  const getXForIndex = (index) => chartLeftPadding + index * stepX;
+  const getYForValue = (value) => chartHeight - chartPadding - (value / yAxisMax) * (chartHeight - chartPadding * 2);
+
+  const chartPoints = monthlyActivity.map((point, index) => ({
+    ...point,
+    x: getXForIndex(index),
+    y: getYForValue(point.value),
+  }));
+
+  const linePath = chartPoints
+    .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+    .join(" ");
+
+  const areaPath = chartPoints.length
+    ? `${linePath} L${chartPoints[chartPoints.length - 1].x},${getYForValue(0)} L${chartPoints[0].x},${getYForValue(0)} Z`
+    : "";
+
+  const ringRadius = 34;
+  const ringStroke = 8;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringProgress = (Math.max(0, Math.min(100, retentionRate)) / 100) * ringCircumference;
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen">
@@ -48,19 +122,6 @@ function StatsPage() {
     );
   }
 
-  const totalAttempts = Object.values(overview).reduce((sum, count) => sum + count, 0);
-  const doneCount = overview.done || 0;
-  const successRate = totalAttempts > 0 ? Math.round((doneCount / totalAttempts) * 100) : 0;
-
-  const getIntensityColor = (count) => {
-    if (count === 0) return 'bg-gray-800';
-    if (count === 1) return 'bg-green-900';
-    if (count === 2) return 'bg-green-700';
-    if (count === 3) return 'bg-green-600';
-    if (count === 4) return 'bg-green-500';
-    return 'bg-green-400';
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
@@ -68,25 +129,39 @@ function StatsPage() {
         <p className="text-gray-400">Track your DSA learning journey</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg rounded-xl p-6 text-white">
-          <p className="text-blue-100 text-sm font-medium mb-1">Total Attempts</p>
-          <h3 className="text-4xl font-bold">{totalAttempts}</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-6 bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-900/60 rounded-xl p-4 sm:p-5 min-h-[130px] shadow-lg">
+          <p className="text-gray-300 text-xs sm:text-sm font-medium mb-1.5">Total Attempted</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-white">{totalAttempts} Questions</h3>
+          <p className="text-gray-400 mt-2">All time</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-600 to-green-700 shadow-lg rounded-xl p-6 text-white">
-          <p className="text-green-100 text-sm font-medium mb-1">Solved</p>
-          <h3 className="text-4xl font-bold">{overview.done || 0}</h3>
-        </div>
+        <div className="lg:col-span-6 bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-900/60 rounded-xl p-4 sm:p-5 min-h-[130px] shadow-lg flex items-center justify-between gap-3">
+          <div>
+            <p className="text-gray-300 text-xs sm:text-sm font-medium mb-1.5">Average Retention Rate</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-white">{retentionRate}%</h3>
+            <p className="text-gray-400 mt-1.5 text-xs sm:text-sm">Based on solved vs total attempts</p>
+          </div>
 
-        <div className="bg-gradient-to-br from-yellow-600 to-yellow-700 shadow-lg rounded-xl p-6 text-white">
-          <p className="text-yellow-100 text-sm font-medium mb-1">Need Help</p>
-          <h3 className="text-4xl font-bold">{overview.help || 0}</h3>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg rounded-xl p-6 text-white">
-          <p className="text-purple-100 text-sm font-medium mb-1">Success Rate</p>
-          <h3 className="text-4xl font-bold">{successRate}%</h3>
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+            <svg viewBox="0 0 100 100" className="w-20 h-20 sm:w-24 sm:h-24 -rotate-90">
+              <circle cx="50" cy="50" r={ringRadius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={ringStroke} />
+              <circle
+                cx="50"
+                cy="50"
+                r={ringRadius}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth={ringStroke}
+                strokeLinecap="round"
+                strokeDasharray={ringCircumference}
+                strokeDashoffset={ringCircumference - ringProgress}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center text-white font-semibold text-sm sm:text-base">
+              {retentionRate}%
+            </div>
+          </div>
         </div>
       </div>
 
@@ -104,6 +179,99 @@ function StatsPage() {
           <div className="flex items-center justify-between p-4 bg-red-900/20 rounded-lg border border-red-700">
             <span className="font-medium text-gray-300">Unsolved</span>
             <span className="text-2xl font-bold text-red-400">{overview.fail || 0}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-900 border border-gray-800 shadow-lg rounded-xl p-6">
+        <h3 className="text-2xl font-semibold text-white mb-1">Learning Streaks</h3>
+        <p className="text-sm text-gray-400 mb-5">Your monthly attempt trend for the last 12 months</p>
+
+        <div className="overflow-x-auto">
+          <div className="min-w-[780px]">
+            <svg
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              className="w-full h-56"
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              <defs>
+                <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#60a5fa" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+
+              {yAxisTicks.map((tick) => {
+                const y = getYForValue(tick);
+                return (
+                  <g key={tick}>
+                    <line
+                      x1={chartLeftPadding}
+                      y1={y}
+                      x2={chartWidth - chartRightPadding}
+                      y2={y}
+                      stroke="rgba(148, 163, 184, 0.15)"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={chartLeftPadding - 8}
+                      y={y + 4}
+                      textAnchor="end"
+                      fill="#94a3b8"
+                      fontSize="12"
+                    >
+                      {Math.round(tick)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              <path d={areaPath} fill="url(#trendFill)" />
+              <path d={linePath} fill="none" stroke="#60a5fa" strokeWidth="3" strokeLinecap="round" />
+
+              {chartPoints.map((point) => {
+                return (
+                  <g key={point.key}>
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="11"
+                      fill="transparent"
+                      onMouseEnter={() => setHoveredPoint(point)}
+                    />
+                    <circle cx={point.x} cy={point.y} r="4.5" fill="#60a5fa" />
+                    <text x={point.x} y={chartHeight - 4} textAnchor="middle" fill="#9ca3af" fontSize="12">
+                      {point.label}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {hoveredPoint && (
+                <g pointerEvents="none">
+                  <rect
+                    x={Math.max(chartLeftPadding, Math.min(hoveredPoint.x - 58, chartWidth - chartRightPadding - 116))}
+                    y={Math.max(8, hoveredPoint.y - 40)}
+                    rx="8"
+                    ry="8"
+                    width="116"
+                    height="30"
+                    fill="rgba(15, 23, 42, 0.95)"
+                    stroke="rgba(96, 165, 250, 0.45)"
+                  />
+                  <text
+                    x={Math.max(chartLeftPadding, Math.min(hoveredPoint.x - 58, chartWidth - chartRightPadding - 116)) + 58}
+                    y={Math.max(8, hoveredPoint.y - 40) + 20}
+                    textAnchor="middle"
+                    fill="#e5e7eb"
+                    fontSize="12"
+                    fontWeight="600"
+                  >
+                    {`${hoveredPoint.value} question${hoveredPoint.value === 1 ? "" : "s"}`}
+                  </text>
+                </g>
+              )}
+            </svg>
           </div>
         </div>
       </div>
@@ -128,36 +296,6 @@ function StatsPage() {
                   <span className="ml-2 text-sm text-gray-400">({count})</span>
                 </div>
               ))}
-          </div>
-        </div>
-      )}
-
-      {heatmap.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 shadow-lg rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Activity Heatmap</h3>
-          <p className="text-sm text-gray-400 mb-4">Your daily practice activity</p>
-          <div className="flex flex-wrap gap-2">
-            {heatmap.map((d, idx) => {
-              const intensity = Math.min(d.count, 5);
-              
-              return (
-                <div
-                  key={idx}
-                  className={`w-8 h-8 ${getIntensityColor(intensity)} rounded hover:ring-2 hover:ring-blue-500 transition cursor-pointer`}
-                  title={`${d.date}: ${d.count} question${d.count !== 1 ? "s" : ""}`}
-                />
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-4 mt-4 text-sm text-gray-400">
-            <span>Less</span>
-            <div className="flex gap-1">
-              <div className="w-4 h-4 bg-gray-800 rounded" />
-              <div className="w-4 h-4 bg-green-900 rounded" />
-              <div className="w-4 h-4 bg-green-700 rounded" />
-              <div className="w-4 h-4 bg-green-500 rounded" />
-            </div>
-            <span>More</span>
           </div>
         </div>
       )}
