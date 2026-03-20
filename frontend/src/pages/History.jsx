@@ -197,25 +197,25 @@ function History() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-900/60">
+        <div className="overflow-hidden md:overflow-x-auto dark-scrollbar">
+          <table className="w-full text-sm block md:table">
+            <thead className="bg-gray-50 dark:bg-gray-900/60 hidden md:table-header-group border-b border-gray-100 dark:border-gray-700">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Title &amp; Preview</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 w-56">Mastery</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 w-40">Last Reviewed</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 w-48">Last Reviewed</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Tags</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="block md:table-row-group">
               {questions.map((q) => (
-                <tr key={q.id} className="border-t border-gray-100 dark:border-gray-700/70">
-                  <td className="px-4 py-4 align-top">
+                <tr key={q.id} className="block md:table-row border-b md:border-b-0 border-gray-100 dark:border-gray-700/70 md:border-t p-4 md:p-0">
+                  <td className="block md:table-cell px-1 py-1.5 md:px-4 md:py-4 align-top">
                     <a
                       href={q.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-semibold text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+                      className="font-semibold text-base md:text-sm text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                     >
                       {q.title}
                     </a>
@@ -245,9 +245,10 @@ function History() {
                       </div>
                     ) : null}
                   </td>
-                  <td className="px-4 py-4 align-top">
+                  <td className="block md:table-cell px-1 py-1.5 md:px-4 md:py-4 align-top">
                     <div className="flex items-center gap-3">
-                      <div className="w-28 h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                      <span className="md:hidden text-xs font-semibold text-gray-500 dark:text-gray-400 w-24">Mastery:</span>
+                      <div className="w-28 flex-1 md:flex-none h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
                         <div
                           className={`h-2 rounded-full ${getMasteryBarColor(q.mastery_percent)}`}
                           style={{ width: `${Math.max(0, Math.min(100, q.mastery_percent || 0))}%` }}
@@ -258,22 +259,28 @@ function History() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 align-top text-gray-700 dark:text-gray-300">
-                    {formatLastReviewed(q.last_reviewed_at, q.created_at)}
+                  <td className="block md:table-cell px-1 py-1.5 md:px-4 md:py-4 align-top text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center gap-3">
+                      <span className="md:hidden text-xs font-semibold text-gray-500 dark:text-gray-400 w-24">Reviewed:</span>
+                      <span>{formatLastReviewed(q.last_reviewed_at, q.created_at)}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-4 align-top">
-                    <div className="flex flex-wrap gap-2">
-                      {(q.tags || []).slice(0, 4).map((entry) => (
-                        <span
-                          key={`${q.id}-${entry}`}
-                          className="px-2.5 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
-                        >
-                          {entry}
-                        </span>
-                      ))}
-                      {(q.tags || []).length === 0 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">No tags</span>
-                      )}
+                  <td className="block md:table-cell px-1 py-1.5 md:px-4 md:py-4 align-top">
+                    <div className="flex items-start gap-3">
+                      <span className="md:hidden text-xs font-semibold text-gray-500 dark:text-gray-400 w-24 pt-1">Tags:</span>
+                      <div className="flex flex-wrap gap-2 flex-1">
+                        {(q.tags || []).slice(0, 4).map((entry) => (
+                          <span
+                            key={`${q.id}-${entry}`}
+                            className="px-2.5 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                          >
+                            {entry}
+                          </span>
+                        ))}
+                        {(q.tags || []).length === 0 && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 pt-0.5">No tags</span>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
