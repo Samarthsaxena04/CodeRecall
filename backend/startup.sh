@@ -16,10 +16,11 @@ echo "=== Starting gunicorn ==="
 # Azure App Service F1 (Free tier): 1 CPU core, 1 GB RAM — use 1 worker
 # Azure provides PORT env var (default 8000)
 gunicorn main:app \
-    --workers 1 \
+    --workers 2 \
     --worker-class uvicorn.workers.UvicornWorker \
     --bind 0.0.0.0:${PORT:-8000} \
     --timeout 120 \
+    --keep-alive 5 \
     --access-logfile '-' \
     --error-logfile '-' \
     --log-level info

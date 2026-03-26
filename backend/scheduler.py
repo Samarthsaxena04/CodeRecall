@@ -1,6 +1,7 @@
 """Automated email reminder scheduler using APScheduler."""
 
 import logging
+import threading
 from datetime import datetime, time, date, timedelta, timezone
 from typing import List, Dict, Any
 import pytz
@@ -18,6 +19,7 @@ from email_service import send_revision_reminder_email, is_email_configured
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
+_scheduler_lock = threading.Lock()
 
 
 def get_db() -> Session:
@@ -175,22 +177,23 @@ def job_listener(event):
 
 def start_scheduler():
     """Start the background scheduler."""
-    if scheduler.running:
-        logger.info("Scheduler is already running")
-        return
-    
-    scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    with _scheduler_lock:
+        if scheduler.running:
+            logger.info("Scheduler is already running")
+            return
 
-    scheduler.add_job(
-        check_and_send_reminders,
-        trigger=IntervalTrigger(minutes=1),
-        id="email_reminder_checker",
-        name="Check and send email reminders",
-        replace_existing=True
-    )
-    
-    scheduler.start()
-    logger.info("Email reminder scheduler started")
+        scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+
+        scheduler.add_job(
+            check_and_send_reminders,
+            trigger=IntervalTrigger(minutes=1),
+            id="email_reminder_checker",
+            name="Check and send email reminders",
+            replace_existing=True
+        )
+
+        scheduler.start()
+        logger.info("Email reminder scheduler started")
 
 
 def stop_scheduler():
