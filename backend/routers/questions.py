@@ -31,9 +31,11 @@ def add_question(
     db.refresh(new_question)
 
     for tag_name in question.tags:
-        tag_name = tag_name.strip()
+        tag_name = tag_name.strip().lower()
+        if not tag_name:
+            continue
 
-        tag = db.query(models.Tag).filter(models.Tag.name == tag_name).first()
+        tag = db.query(models.Tag).filter(func.lower(models.Tag.name) == tag_name).first()
         if not tag:
             tag = models.Tag(name=tag_name)
             db.add(tag)
@@ -165,7 +167,7 @@ def get_history_questions(
         )
 
     if tag != "all":
-        query = query.filter(models.Question.tags.any(models.Tag.name == tag))
+        query = query.filter(models.Question.tags.any(func.lower(models.Tag.name) == tag.lower()))
 
     if mastery_level == "low":
         query = query.filter(mastery_expr < 40)

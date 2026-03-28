@@ -1,6 +1,26 @@
 import { useState } from "react";
 import API from "../api";
 
+const ALLOWED_DOMAINS = [
+  { pattern: /^(www\.)?leetcode\.com$/, name: "LeetCode" },
+  { pattern: /^(www\.)?codeforces\.com$/, name: "Codeforces" },
+  { pattern: /^(www\.)?codechef\.com$/, name: "CodeChef" },
+  { pattern: /^(www\.)?hackerrank\.com$/, name: "HackerRank" },
+  { pattern: /^(www\.)?hackerearth\.com$/, name: "HackerEarth" },
+  { pattern: /^(www\.)?(geeksforgeeks\.org|practice\.geeksforgeeks\.org)$/, name: "GeeksforGeeks" },
+  { pattern: /^(www\.)?atcoder\.jp$/, name: "AtCoder" },
+  { pattern: /^(www\.)?topcoder\.com$/, name: "TopCoder" },
+];
+
+function isValidPlatformLink(url) {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_DOMAINS.some(d => d.pattern.test(parsed.hostname));
+  } catch {
+    return false;
+  }
+}
+
 function AddQuestion() {
   const [formData, setFormData] = useState({
     title: "",
@@ -12,10 +32,22 @@ function AddQuestion() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [linkError, setLinkError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === "link") {
+      if (value && !isValidPlatformLink(value)) {
+        setLinkError(
+          "Only links from LeetCode, Codeforces, CodeChef, HackerRank, HackerEarth, GeeksforGeeks, AtCoder, or TopCoder are allowed"
+        );
+      } else {
+        setLinkError("");
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -30,13 +62,21 @@ function AddQuestion() {
       return;
     }
 
+    if (!isValidPlatformLink(formData.link)) {
+      setError(
+        "Invalid link. Only links from LeetCode, Codeforces, CodeChef, HackerRank, HackerEarth, GeeksforGeeks, AtCoder, or TopCoder are allowed"
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       await API.post("/questions", {
         title: formData.title,
         link: formData.link,
         platform: formData.platform,
         notes: formData.notes,
-        tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
+        tags: formData.tags.split(",").map(t => t.trim().toLowerCase()).filter(Boolean),
         status: formData.status,
       });
 
@@ -58,7 +98,7 @@ function AddQuestion() {
     }
   };
 
-  const platforms = ["LeetCode", "Codeforces", "HackerRank", "GeeksForGeeks", "Other"];
+  const platforms = ["LeetCode", "Codeforces", "CodeChef", "HackerRank", "HackerEarth", "GeeksforGeeks", "AtCoder", "TopCoder"];
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -94,8 +134,11 @@ function AddQuestion() {
               placeholder="https://leetcode.com/problems/..."
               value={formData.link}
               onChange={handleChange}
-              className="w-full border border-gray-700 bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+              className={`w-full border ${linkError ? 'border-red-500' : 'border-gray-700'} bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 ${linkError ? 'focus:ring-red-500' : 'focus:ring-blue-500'} placeholder-gray-500`}
             />
+            {linkError && (
+              <p className="text-red-400 text-xs mt-1">{linkError}</p>
+            )}
           </div>
 
           <div>

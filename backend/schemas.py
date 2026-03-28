@@ -1,6 +1,18 @@
+import re
 from pydantic import BaseModel, EmailStr, HttpUrl, field_validator
 from typing import List, Optional, Literal
 from datetime import time
+
+ALLOWED_LINK_PATTERNS = [
+    re.compile(r"^(www\.)?leetcode\.com$"),
+    re.compile(r"^(www\.)?codeforces\.com$"),
+    re.compile(r"^(www\.)?codechef\.com$"),
+    re.compile(r"^(www\.)?hackerrank\.com$"),
+    re.compile(r"^(www\.)?hackerearth\.com$"),
+    re.compile(r"^(www\.)?(geeksforgeeks\.org|practice\.geeksforgeeks\.org)$"),
+    re.compile(r"^(www\.)?atcoder\.jp$"),
+    re.compile(r"^(www\.)?topcoder\.com$"),
+]
 
 class QuestionCreate(BaseModel):
     title: str
@@ -9,6 +21,18 @@ class QuestionCreate(BaseModel):
     notes: Optional[str] = None
     tags: List[str]
     status: Literal["done", "help", "fail"]
+
+    @field_validator("link")
+    @classmethod
+    def link_must_be_from_allowed_platform(cls, v: HttpUrl) -> HttpUrl:
+        from urllib.parse import urlparse
+        hostname = urlparse(str(v)).hostname or ""
+        if not any(p.match(hostname) for p in ALLOWED_LINK_PATTERNS):
+            raise ValueError(
+                "Only links from LeetCode, Codeforces, CodeChef, HackerRank, "
+                "HackerEarth, GeeksforGeeks, AtCoder, or TopCoder are allowed"
+            )
+        return v
 
     @field_validator("title")
     @classmethod
@@ -44,7 +68,7 @@ class QuestionCreate(BaseModel):
             raise ValueError("Maximum 20 tags allowed")
         cleaned = []
         for tag in v:
-            tag = tag.strip()
+            tag = tag.strip().lower()
             if tag and len(tag) <= 50:
                 cleaned.append(tag)
         return cleaned

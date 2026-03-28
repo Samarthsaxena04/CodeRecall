@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import API from "../api";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 
 function History() {
   const [questions, setQuestions] = useState([]);
@@ -17,6 +17,20 @@ function History() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [expandedNotes, setExpandedNotes] = useState({});
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
+  const [tagSearch, setTagSearch] = useState("");
+  const tagDropdownRef = useRef(null);
+
+  // Close tag dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target)) {
+        setTagDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -151,26 +165,87 @@ function History() {
               />
             </div>
 
-            <div className="relative">
-              <select
-                value={tag}
-                onChange={(e) => {
-                  setPage(1);
-                  setTag(e.target.value);
-                }}
-                className="w-full rounded-lg px-3 py-2 pr-10 appearance-none bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
+            <div className="relative" ref={tagDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setTagDropdownOpen((prev) => !prev)}
+                className="w-full rounded-lg px-3 py-2 pr-10 text-left bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Tag</option>
-                {availableTags.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {entry}
-                  </option>
-                ))}
-              </select>
+                {tag === "all" ? "Tag" : tag}
+              </button>
               <ChevronDown
                 size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 transition-transform ${tagDropdownOpen ? "rotate-180" : ""}`}
               />
+
+              {tagDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden">
+                  <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        value={tagSearch}
+                        onChange={(e) => setTagSearch(e.target.value)}
+                        placeholder="Search tags..."
+                        autoFocus
+                        className="w-full pl-8 pr-3 py-1.5 rounded-md text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <ul className="max-h-48 overflow-y-auto py-1">
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTag("all");
+                          setPage(1);
+                          setTagDropdownOpen(false);
+                          setTagSearch("");
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                          tag === "all"
+                            ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                            : "text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        All Tags
+                      </button>
+                    </li>
+                    {availableTags
+                      .filter((t) =>
+                        t.toLowerCase().includes(tagSearch.toLowerCase())
+                      )
+                      .map((entry) => (
+                        <li key={entry}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTag(entry);
+                              setPage(1);
+                              setTagDropdownOpen(false);
+                              setTagSearch("");
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                              tag === entry
+                                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                                : "text-gray-700 dark:text-gray-300"
+                            }`}
+                          >
+                            {entry}
+                          </button>
+                        </li>
+                      ))}
+                    {availableTags.filter((t) =>
+                      t.toLowerCase().includes(tagSearch.toLowerCase())
+                    ).length === 0 && (
+                      <li className="px-3 py-2 text-sm text-gray-400 dark:text-gray-500 text-center">
+                        No tags found
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div className="relative">
