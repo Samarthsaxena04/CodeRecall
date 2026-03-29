@@ -47,7 +47,7 @@ const features = [
   { icon: Zap, title: "Auto-detect problems", desc: "Title, link, and platform filled automatically when you open any problem page." },
   { icon: Tag, title: "Auto-detect topics", desc: "Tags like Array, DP, Binary Search scraped from the problem page — no typing needed." },
   { icon: RefreshCw, title: "Review without leaving", desc: 'See which questions are due today and mark them done right from the popup.' },
-  { icon: Star, title: "Google Sign-In", desc: "Sign in with Google — no need to remember a separate password." },
+  { icon: Star, title: "Google Sign-In", desc: "Sign in with Google — no password needed. A secure tab opens on the website, completes sign-in, and closes automatically." },
 ];
 
 const browsers = [
@@ -198,6 +198,21 @@ function ExtensionPage() {
           <div>
             <p className="text-gray-300 font-medium mb-1">Does it work when I'm not on a problem page?</p>
             <p className="text-gray-500">Yes — you can still open the popup and manually fill in any question. Auto-detection only works on supported platforms.</p>
+          </div>
+          <div className="border-t border-gray-800 pt-4">
+            <p className="text-gray-300 font-medium mb-1">Why does Google Sign-In open a website tab instead of a Google popup?</p>
+            <p className="text-gray-500">
+              Because this extension is sideloaded (not from the Chrome Web Store), every user's Chrome assigns it a different internal ID — which means a different OAuth redirect URL. Google only allows pre-registered redirect URLs, so a direct popup would fail for everyone except the developer.
+            </p>
+            <p className="text-gray-500 mt-2">
+              To fix this properly, clicking <span className="text-gray-300 font-medium">Continue with Google</span> opens a tab on this website, which has a single stable URL that Google trusts. You sign in there, the tab sends your tokens securely back to the extension, and then closes automatically — usually within a few seconds.
+            </p>
+            <div className="mt-3 flex items-start gap-2 bg-blue-900/20 border border-blue-800/40 rounded-lg px-3 py-2.5">
+              <span className="text-blue-400 mt-0.5 flex-shrink-0">ℹ️</span>
+              <p className="text-blue-300 text-xs">
+                This is a one-time sign-in. Once done, the extension stays logged in and you won't need to repeat it until you explicitly log out.
+              </p>
+            </div>
           </div>
         </div>
       </div>

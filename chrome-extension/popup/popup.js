@@ -9,7 +9,6 @@ const API_URLS = {
   local: 'http://127.0.0.1:8000'
 };
 const WEBSITE_URL = 'https://code-recall-six.vercel.app';
-const GOOGLE_CLIENT_ID = '172280347927-ou8efh8609h381l33oviqivskjn0rc6m.apps.googleusercontent.com';
 
 // ── State ───────────────────────────────────────────────────────────────
 let currentApiUrl = API_URLS.production;
@@ -162,70 +161,71 @@ async function doLogout() {
 
 logoutBtn.addEventListener('click', doLogout);
 
-// ── Google Login ────────────────────────────────────────────────────────
+// ── Google Login ─────────────────────────────────────────────────────────
+// We delegate OAuth entirely to the website (/extension-auth).
+// This means only ONE redirect URI is ever needed (the website's),
+// and it works for every user with zero setup.
+//
+// Flow:
+//  1. Open website /extension-auth?ext_id=<our extension ID>
+//  2. User clicks "Sign in with Google" on that page
+//  3. Website does OAuth, then calls chrome.runtime.sendMessage(extId, tokens)
+//  4. We receive the tokens here, store them, close the tab, log in
+// ─────────────────────────────────────────────────────────────────────────
 async function handleGoogleLogin() {
   googleLoginBtn.disabled = true;
-  googleLoginBtn.querySelector('span').textContent = 'Signing in…';
+  googleLoginBtn.querySelector('span').textContent = 'Opening sign-in…';
   loginErr.style.display = 'none';
 
-  try {
-    const redirectUri = chrome.identity.getRedirectURL('oauth2');
-    const nonce = Math.random().toString(36).substring(2, 18);
+  const extId = chrome.runtime.id;
+  const authUrl = `${WEBSITE_URL}/extension-auth?ext_id=${extId}`;
 
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('response_type', 'id_token');
-    authUrl.searchParams.set('scope', 'openid email profile');
-    authUrl.searchParams.set('nonce', nonce);
-    authUrl.searchParams.set('prompt', 'select_account');
+  // Open the auth page in a new tab
+  const tab = await chrome.tabs.create({ url: authUrl });
 
-    const responseUrl = await new Promise((resolve, reject) => {
-      chrome.identity.launchWebAuthFlow(
-        { url: authUrl.toString(), interactive: true },
-        (url) => {
-          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-          else resolve(url);
-        }
-      );
-    });
+  // Listen for the website to send back tokens
+  const messageListener = async (message, sender) => {
+    // Only accept messages from our own extension auth page
+    if (
+      message.type !== 'extensionAuthSuccess' ||
+      sender.tab?.id !== tab.id
+    ) return;
 
-    // Parse id_token from the redirect URL hash
-    const hash = new URL(responseUrl).hash.slice(1);
-    const params = new URLSearchParams(hash);
-    const idToken = params.get('id_token');
+    // Clean up listener
+    chrome.runtime.onMessage.removeListener(messageListener);
 
-    if (!idToken) throw new Error('No ID token received from Google');
+    // Close the auth tab
+    chrome.tabs.remove(tab.id).catch(() => {});
 
-    // Send to backend — same endpoint as website
-    const data = await apiRequest('POST', '/google-login', { token: idToken });
+    try {
+      await chrome.storage.local.set({
+        token: message.access_token,
+        refreshToken: message.refresh_token,
+        userName: message.name,
+      });
 
-    await chrome.storage.local.set({
-      token: data.access_token,
-      refreshToken: data.refresh_token,
-      userName: data.name,
-    });
-
-    showView('main');
-    chrome.runtime.sendMessage({ type: 'refreshBadge' });
-
-  } catch (err) {
-    const msg = err.message || '';
-    // User exists but hasn't linked Google — guide them to website
-    if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('no account')) {
-      loginErr.textContent = 'No Google account found. Please sign up on the website first.';
-    } else if (msg.toLowerCase().includes('redirect_uri') || msg.toLowerCase().includes('unauthorized')) {
-      loginErr.textContent = 'Google login setup incomplete. See README for one-time setup steps.';
-    } else if (msg === 'The user did not approve access.') {
-      loginErr.textContent = 'Google sign-in was cancelled.';
-    } else {
-      loginErr.textContent = msg || 'Google sign-in failed.';
+      showView('main');
+      chrome.runtime.sendMessage({ type: 'refreshBadge' });
+    } catch {
+      showError(loginErr, 'Failed to save login. Please try again.');
+    } finally {
+      googleLoginBtn.disabled = false;
+      googleLoginBtn.querySelector('span').textContent = 'Continue with Google';
     }
-    loginErr.style.display = 'block';
-  } finally {
+  };
+
+  chrome.runtime.onMessage.addListener(messageListener);
+
+  // If the user closes the tab manually without signing in — clean up
+  const tabRemovedListener = (tabId) => {
+    if (tabId !== tab.id) return;
+    chrome.tabs.onRemoved.removeListener(tabRemovedListener);
+    chrome.runtime.onMessage.removeListener(messageListener);
     googleLoginBtn.disabled = false;
     googleLoginBtn.querySelector('span').textContent = 'Continue with Google';
-  }
+  };
+
+  chrome.tabs.onRemoved.addListener(tabRemovedListener);
 }
 
 googleLoginBtn.addEventListener('click', handleGoogleLogin);

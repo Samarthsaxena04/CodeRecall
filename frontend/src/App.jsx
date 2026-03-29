@@ -11,6 +11,7 @@ import StatsPage from "./pages/StatsPage";
 import History from "./pages/History";
 import SettingsPage from "./pages/SettingsPage";
 import ExtensionPage from "./pages/ExtensionPage";
+import ExtensionAuth from "./pages/ExtensionAuth";
 import logoImage from './assets/logo.png';
 
 import { Home, Plus, BarChart3, History as HistoryIcon, Settings, ChevronDown, LogOut, Menu, X, Puzzle } from 'lucide-react';
@@ -57,6 +58,8 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register goToLogin={() => navigate("/login")} />} />
         <Route path="/login" element={<Login goToRegister={() => navigate("/register")} />} />
+        {/* Public route — opened by the Chrome extension for OAuth handoff */}
+        <Route path="/extension-auth" element={<ExtensionAuth />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -266,6 +269,8 @@ function App() {
           <Route path="/history" element={<History />} />
           <Route path="/extension" element={<ExtensionPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* Also accessible when logged in (user may already be signed in) */}
+          <Route path="/extension-auth" element={<ExtensionAuth />} />
           <Route path="/revise" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
