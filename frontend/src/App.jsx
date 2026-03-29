@@ -10,9 +10,10 @@ import AddQuestion from "./pages/AddQuestion";
 import StatsPage from "./pages/StatsPage";
 import History from "./pages/History";
 import SettingsPage from "./pages/SettingsPage";
+import ExtensionPage from "./pages/ExtensionPage";
 import logoImage from './assets/logo.png';
 
-import { Home, Plus, BarChart3, History as HistoryIcon, Settings, ChevronDown, LogOut, Menu, X } from 'lucide-react';
+import { Home, Plus, BarChart3, History as HistoryIcon, Settings, ChevronDown, LogOut, Menu, X, Puzzle } from 'lucide-react';
 
 function App() {
   const { user, logout, loading } = useAuth();
@@ -66,6 +67,7 @@ function App() {
     { id: 'add', path: '/add', label: 'Add Question', icon: Plus },
     { id: 'stats', path: '/stats', label: 'Stats', icon: BarChart3 },
     { id: 'history', path: '/history', label: 'History', icon: HistoryIcon },
+    { id: 'extension', path: '/extension', label: 'Extension', icon: Puzzle },
     { id: 'settings', path: '/settings', label: 'Settings', icon: Settings }
   ];
 
@@ -262,6 +264,7 @@ function App() {
           <Route path="/add" element={<AddQuestion />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/history" element={<History />} />
+          <Route path="/extension" element={<ExtensionPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/revise" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
