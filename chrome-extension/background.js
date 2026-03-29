@@ -118,3 +118,27 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
 });
+
+// ── External message handler (receives tokens from the website auth page) ─
+// The website calls chrome.runtime.sendMessage(extId, payload) after Google
+// sign-in. This arrives here (not in popup.js) because:
+//   1. background.js is always alive — popup closes when it loses focus
+//   2. External messages fire onMessageExternal, not onMessage
+chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
+  if (msg.type !== 'extensionAuthSuccess') return;
+
+  // Only accept from our own website
+  const allowedOrigin = 'https://code-recall-six.vercel.app';
+  if (!sender.origin || sender.origin !== allowedOrigin) return;
+
+  chrome.storage.local.set({
+    token: msg.access_token,
+    refreshToken: msg.refresh_token,
+    userName: msg.name,
+  }).then(() => {
+    updateBadge();
+    sendResponse({ ok: true });
+  });
+
+  return true; // async
+});

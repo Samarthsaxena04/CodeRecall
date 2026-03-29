@@ -161,71 +161,25 @@ async function doLogout() {
 
 logoutBtn.addEventListener('click', doLogout);
 
-// ── Google Login ─────────────────────────────────────────────────────────
 // We delegate OAuth entirely to the website (/extension-auth).
-// This means only ONE redirect URI is ever needed (the website's),
-// and it works for every user with zero setup.
+// Only ONE redirect URI needed (the website's) — works for every user.
 //
 // Flow:
 //  1. Open website /extension-auth?ext_id=<our extension ID>
-//  2. User clicks "Sign in with Google" on that page
-//  3. Website does OAuth, then calls chrome.runtime.sendMessage(extId, tokens)
-//  4. We receive the tokens here, store them, close the tab, log in
+//  2. User signs in with Google there
+//  3. Website calls chrome.runtime.sendMessage(extId, tokens)
+//  4. background.js receives it via onMessageExternal and stores tokens
+//  5. User clicks extension icon again → checkAuth() finds token → logged in
+//
+// NOTE: Popup auto-closes when a new tab opens (loses focus), so we cannot
+// keep listeners alive here. background.js handles all token storage.
 // ─────────────────────────────────────────────────────────────────────────
 async function handleGoogleLogin() {
-  googleLoginBtn.disabled = true;
-  googleLoginBtn.querySelector('span').textContent = 'Opening sign-in…';
   loginErr.style.display = 'none';
-
   const extId = chrome.runtime.id;
   const authUrl = `${WEBSITE_URL}/extension-auth?ext_id=${extId}`;
-
-  // Open the auth page in a new tab
-  const tab = await chrome.tabs.create({ url: authUrl });
-
-  // Listen for the website to send back tokens
-  const messageListener = async (message, sender) => {
-    // Only accept messages from our own extension auth page
-    if (
-      message.type !== 'extensionAuthSuccess' ||
-      sender.tab?.id !== tab.id
-    ) return;
-
-    // Clean up listener
-    chrome.runtime.onMessage.removeListener(messageListener);
-
-    // Close the auth tab
-    chrome.tabs.remove(tab.id).catch(() => {});
-
-    try {
-      await chrome.storage.local.set({
-        token: message.access_token,
-        refreshToken: message.refresh_token,
-        userName: message.name,
-      });
-
-      showView('main');
-      chrome.runtime.sendMessage({ type: 'refreshBadge' });
-    } catch {
-      showError(loginErr, 'Failed to save login. Please try again.');
-    } finally {
-      googleLoginBtn.disabled = false;
-      googleLoginBtn.querySelector('span').textContent = 'Continue with Google';
-    }
-  };
-
-  chrome.runtime.onMessage.addListener(messageListener);
-
-  // If the user closes the tab manually without signing in — clean up
-  const tabRemovedListener = (tabId) => {
-    if (tabId !== tab.id) return;
-    chrome.tabs.onRemoved.removeListener(tabRemovedListener);
-    chrome.runtime.onMessage.removeListener(messageListener);
-    googleLoginBtn.disabled = false;
-    googleLoginBtn.querySelector('span').textContent = 'Continue with Google';
-  };
-
-  chrome.tabs.onRemoved.addListener(tabRemovedListener);
+  // Opens the auth page — popup closes automatically after this
+  await chrome.tabs.create({ url: authUrl });
 }
 
 googleLoginBtn.addEventListener('click', handleGoogleLogin);

@@ -90,8 +90,8 @@ export default function ExtensionAuth() {
 
       setStatus("success");
 
-      // Auto-close after a short delay
-      setTimeout(() => window.close(), 2500);
+      // Try to close the tab automatically (works in some browsers)
+      setTimeout(() => window.close(), 1500);
     } catch (err) {
       setErrorMsg(
         err.response?.data?.detail ||
@@ -138,9 +138,9 @@ export default function ExtensionAuth() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <p className="text-green-400 font-semibold text-lg">Signed in!</p>
+            <p className="text-green-400 font-semibold text-lg">Signed in successfully!</p>
             <p className="text-gray-400 text-sm">
-              Your extension is now connected. This tab will close automatically.
+              You can close this tab and click the <strong className="text-white">CodeRecall extension icon</strong> in your toolbar to get started.
             </p>
           </div>
         )}
