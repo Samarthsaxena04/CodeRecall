@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Download, Chrome, CheckCircle, Puzzle, Zap, RefreshCw, Tag, Star, ExternalLink } from "lucide-react";
 
-const GITHUB_RELEASE_URL = "https://github.com/Samarthsaxena04/coderecall-extension/releases/latest/download/coderecall-extension.zip";
+const GITHUB_RELEASE_URL = "https://github.com/Samarthsaxena04/coderecall-extension/releases/latest/download/CodeRecall-extension.zip";
 const GITHUB_REPO_URL = "https://github.com/Samarthsaxena04/coderecall-extension";
 
 const steps = [
