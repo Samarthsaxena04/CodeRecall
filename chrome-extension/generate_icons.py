@@ -1,13 +1,4 @@
-"""Run this script once to generate extension icons from the logo.
-Usage: python generate_icons.py
 
-If Pillow is not installed, you can also manually create/copy icons:
-- icons/icon16.png  (16x16)
-- icons/icon48.png  (48x48)
-- icons/icon128.png (128x128)
-
-Or simply copy your logo.png to all three paths.
-"""
 import os
 import shutil
 

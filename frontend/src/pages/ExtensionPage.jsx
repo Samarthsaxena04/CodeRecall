@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Chrome, CheckCircle, Puzzle, Zap, RefreshCw, Tag, Star, ExternalLink } from "lucide-react";
+import { Download, Globe, CheckCircle, Puzzle, Zap, RefreshCw, Tag, Star, ExternalLink } from "lucide-react";
 
 const GITHUB_RELEASE_URL = "https://github.com/Samarthsaxena04/coderecall-extension/releases/latest/download/CodeRecall-extension.zip";
 const GITHUB_REPO_URL = "https://github.com/Samarthsaxena04/coderecall-extension";
@@ -33,7 +33,7 @@ const steps = [
     number: "05",
     title: "Load the Extension",
     desc: 'Click "Load Unpacked" and select the unzipped folder.',
-    detail: "Select the chrome-extension folder, not a file inside it.",
+    detail: "Select the browser-extension folder, not a file inside it.",
   },
   {
     number: "06",
@@ -132,8 +132,8 @@ function ExtensionPage() {
         <h2 className="text-xl font-bold text-white mb-4">How to Install</h2>
         <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
           <div className="p-4 border-b border-gray-800 bg-blue-500/5 flex items-center gap-2">
-            <Chrome size={16} className="text-blue-400" />
-            <span className="text-sm font-medium text-blue-400">Works on Chrome, Edge, Brave, Opera</span>
+            <Globe size={16} className="text-blue-400" />
+            <span className="text-sm font-medium text-blue-400">Works on any Chromium-based browser — Chrome, Edge, Brave, Opera</span>
           </div>
           <div className="divide-y divide-gray-800">
             {steps.map((step, i) => (

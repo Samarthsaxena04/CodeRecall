@@ -1,20 +1,15 @@
-"""Minimal icon generator that uses only standard library (no Pillow).
-Creates simple PNG icons with a blue gradient circle and '{}' text.
-Run: python create_icons.py
-"""
 import struct
 import zlib
 import os
 
 def create_png(width, height, pixels):
-    """Create a minimal PNG from raw RGBA pixel data."""
     def chunk(ctype, data):
         c = ctype + data
         return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
     
     raw = b''
     for y in range(height):
-        raw += b'\x00'  # filter byte
+        raw += b'\x00'  
         for x in range(width):
             idx = (y * width + x) * 4
             raw += bytes(pixels[idx:idx+4])
@@ -29,7 +24,6 @@ def create_png(width, height, pixels):
     return sig + ihdr + idat + iend
 
 def draw_icon(size):
-    """Draw a CodeRecall icon at the given size."""
     pixels = [0] * (size * size * 4)
     cx, cy = size / 2, size / 2
     radius = size * 0.45

@@ -1,4 +1,4 @@
-# CodeRecall Chrome Extension
+# CodeRecall Browser Extension
 
 Track your DSA revisions without leaving the problem page. Log questions, mark revision status, and get email reminders — all from your browser.
 
@@ -6,7 +6,7 @@ Track your DSA revisions without leaving the problem page. Log questions, mark r
 
 ### Step 1: Generate Icons
 
-Before loading the extension, you need to create the icon files. Run this from the `chrome-extension` folder:
+Before loading the extension, you need to create the icon files. Run this from the `browser-extension` folder:
 
 ```bash
 python generate_icons.py
@@ -23,7 +23,7 @@ This creates `icons/icon16.png`, `icons/icon48.png`, `icons/icon128.png` from yo
 1. Open Chrome and go to `chrome://extensions`
 2. Enable **Developer Mode** (toggle in top-right corner)
 3. Click **Load Unpacked**
-4. Select the `chrome-extension` folder from this project
+4. Select the `browser-extension` folder from this project
 5. The CodeRecall icon appears in your toolbar ✅
 
 ### Step 3: Sign In
@@ -65,7 +65,7 @@ Toggle the **"Use local API"** checkbox at the bottom of the popup to switch bet
 
 ### File Structure
 ```
-chrome-extension/
+browser-extension/
 ├── manifest.json         ← Extension config (Manifest V3)
 ├── background.js         ← Service worker (badge, alarms, token refresh)
 ├── generate_icons.py     ← Icon generator script
@@ -84,7 +84,7 @@ chrome-extension/
 
 ## Sharing with Others
 
-1. Zip the `chrome-extension` folder
+1. Zip the `browser-extension` folder
 2. Share the zip (via GitHub Releases, Google Drive, etc.)
 3. Recipients unzip → Load Unpacked → Done!
 

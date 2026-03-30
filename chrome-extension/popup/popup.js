@@ -161,19 +161,7 @@ async function doLogout() {
 
 logoutBtn.addEventListener('click', doLogout);
 
-// We delegate OAuth entirely to the website (/extension-auth).
-// Only ONE redirect URI needed (the website's) — works for every user.
-//
-// Flow:
-//  1. Open website /extension-auth?ext_id=<our extension ID>
-//  2. User signs in with Google there
-//  3. Website calls chrome.runtime.sendMessage(extId, tokens)
-//  4. background.js receives it via onMessageExternal and stores tokens
-//  5. User clicks extension icon again → checkAuth() finds token → logged in
-//
-// NOTE: Popup auto-closes when a new tab opens (loses focus), so we cannot
-// keep listeners alive here. background.js handles all token storage.
-// ─────────────────────────────────────────────────────────────────────────
+
 async function handleGoogleLogin() {
   loginErr.style.display = 'none';
   const extId = chrome.runtime.id;
