@@ -1,66 +1,82 @@
 # CodeRecall
 
-CodeRecall is a specialized spaced-repetition tracking system designed for software engineers preparing for coding interviews. It seamlessly integrates with popular competitive programming platforms via a browser extension to auto-capture problems, categorize them, and schedule optimal revision intervals.
+CodeRecall is a specialized spaced-repetition tracking system designed for software engineers preparing for technical interviews and competitive programming. The project solves the problem of unstructured problem-solving practice by providing a unified interface to track, categorize, and schedule revisions for coding problems across multiple competitive platforms.
 
-## 🎯 Key Features
+The system consists of three distinct components: a Python/FastAPI backend, a React frontend, and a Chrome extension that acts as a localized scraper to capture problem metadata directly from the browser window.
 
-- **Automated Tracking (Chrome Extension):** Instantly scrape problem titles, URLs, platforms, and topic tags from 8+ platforms (LeetCode, Codeforces, HackerRank, GeeksforGeeks, etc.) without leaving the competition window.
-- **Spaced Repetition Engine:** Automatically schedules problem revisions based on confidence levels:
-  - **Solved:** Revise in 12 days
-  - **Needed Help:** Revise in 5 days
-  - **Unsolved:** Revise in 3 days
-- **Performance Analytics:** Comprehensive heatmaps, success rate tracking, and weak-topic detection to identify areas needing improvement.
-- **Automated Notifications:** Background email service that alerts you of pending daily revisions.
-- **Seamless Auth:** Frictionless Google OAuth login with synchronized sessions between the web app and the browser extension via secure token handshakes.
+## System Architecture
 
-## 🛠 Tech Stack
+CodeRecall utilizes a service-oriented architecture with clear separation of concerns across its three primary clients:
 
-- **Frontend:** React, Vite, Tailwind CSS, Recharts
-- **Backend:** Python, FastAPI, SQLAlchemy, PostgreSQL
-- **Extension:** Vanilla JS, Chrome Extension Manifest V3
-- **Infrastructure:** Azure App Services (API & Database), Vercel (Frontend), Background Schedulers
+1. **Backend Service (Python / FastAPI / SQLAlchemy)**
+   - Acts as the central source of truth for user data, problem logs, and revision scheduling.
+   - Deployed on Azure App Services with an Azure PostgreSQL Flexible Server instance.
+   - Handles JWT-based authentication, user configuration state, and periodic tasks (e.g., daily email reminders via APScheduler/Celery).
 
-## 🚀 Local Development
+2. **Web Client (React / Vite / Tailwind CSS)**
+   - A single-page application (SPA) deployed on Vercel.
+   - Serves as the primary dashboard for users to view statistical overlays, tracking heatmaps, success rates, and weak-topic aggregations.
+   - Houses the core Google OAuth authentication flow.
 
-### 1. Backend Setup
+3. **Browser Extension (Manifest V3 / Vanilla JS)**
+   - Operates contextually when a user visits supported domains (LeetCode, Codeforces, HackerRank, GeeksforGeeks, CodeChef, HackerEarth, AtCoder, TopCoder).
+   - Utilizes content scripts to parse the DOM, extracting problem titles, platform identities, URLs, and contextual category tags.
+   - Interacts with the backend via background service workers to submit new problem entries immediately after completion.
 
+## Core Mechanics
+
+### 1. Spaced Repetition Scheduling
+To enforce active recall, CodeRecall relies on a dynamic revision scheduler mapped to user confidence metrics. When a problem is logged, the user designates an outcome constraint (`done`, `help`, `fail`), which the backend resolves into standard interval delays (configurable by the user):
+- **Solved ("done"):** Scheduled for review in 12 days.
+- **Needed Help ("help"):** Scheduled for review in 5 days.
+- **Failed ("fail"):** Scheduled for review in 3 days.
+
+### 2. Cross-Context Authentication
+Due to strict Google OAuth and Chrome Manifest V3 security policies on dynamic redirect URIs, the extension delegates authentication to the web client. 
+- When an authentication event is triggered in the extension, a specialized frontend route (`/extension-auth?ext_id=...`) is opened.
+- Upon successful Google OAuth resolution, the React application posts the secure JWT payload directly to the Chrome extension via `chrome.runtime.sendMessage`.
+- The extension's background worker intercepts the payload, synchronizes its local storage state, and automatically closes the authentication tab, ensuring seamless cross-origin identity sharing.
+
+### 3. Asynchronous Content Scraping
+The extension relies on bespoke DOM selectors mapped to individual platform UI structures. Because modern platforms like LeetCode behave as complex SPAs, the content scripts explicitly manage race conditions and rendering lifecycle delays to ensure React-hydrated DOM nodes are present before attempting tag extraction.
+
+## Local Development Setup
+
+### Prerequisites
+- Python 3.9+
+- Node.js 18+
+- PostgreSQL
+
+### Backend Setup
 ```bash
 cd backend
-
-# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
-# Install dependencies
+# On macOS/Linux: source venv/bin/activate
+# On Windows: venv\\Scripts\\activate
 pip install -r requirements.txt
 
-# Create a locally tracked .env file based on the example
+# Duplicate the environment template and insert valid credentials
 cp .env.example .env
 
-# Run the local server
+# Run the API server locally
 fastapi dev main.py
 ```
 
-### 2. Frontend Setup
-
+### Frontend Setup
 ```bash
 cd frontend
-
-# Install packages
 npm install
 
-# Setup environment variables
+# Duplicate the environment template
 cp .env.example .env.local
 
-# Run the development server
+# Run the Vite development server
 npm run dev
 ```
 
-### 3. Extension Setup
-1. Open your Chromium-based browser and navigate to `chrome://extensions/`.
-2. Enable **Developer Mode** in the top right corner.
-3. Click **Load Unpacked** and select the `chrome-extension` folder in this repository.
-
-## 📐 System Architecture Note
-
-CodeRecall implements a cross-tab communication architecture for extension authentication. Because sidelined Chrome extensions generate dynamic internal IDs, Google OAuth redirects are handled on the stable frontend domain. The frontend subsequently broadcasts secure JWT pairs to the extension via `chrome.runtime.sendMessage`, establishing the user session without redundant logins.
+### Extension Setup
+1. Open a Chromium-based browser (Chrome, Edge, Brave).
+2. Navigate to `chrome://extensions/`.
+3. Enable **Developer Mode**.
+4. Select **Load Unpacked** and target the `chrome-extension/` directory.
