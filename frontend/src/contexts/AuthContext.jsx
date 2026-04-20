@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const googleAuth = async (credential) => {
     const response = await API.post("/google", { token: credential });
-    return response.data; // { signup_token, email, message }
+    return response.data;
   };
 
   const completeSignup = async (signupToken, name, password) => {
@@ -61,12 +61,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Call logout endpoint to invalidate refresh token on server
+
       await API.post("/logout");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Clear auth keys regardless of API call success
+
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("userName");

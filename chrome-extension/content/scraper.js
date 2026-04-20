@@ -70,7 +70,7 @@ const PLATFORM_SCRAPERS = {
       return document.title.replace(/\s*[-–—|]\s*CodeChef.*$/i, '').trim();
     },
     getTags: () => {
-      // CodeChef shows tags/categories
+
       const tagEls = document.querySelectorAll('.tags a, .problem-tags a, [class*="tag"] a');
       return Array.from(tagEls)
         .map(el => el.textContent.trim().toLowerCase())
@@ -87,7 +87,7 @@ const PLATFORM_SCRAPERS = {
       return document.title.replace(/\s*[-–—|]\s*HackerRank.*$/i, '').trim();
     },
     getTags: () => {
-      // HackerRank skills/domains
+
       const tagEls = document.querySelectorAll('.tags-container a, .domain-name');
       return Array.from(tagEls)
         .map(el => el.textContent.trim().toLowerCase())
@@ -120,7 +120,7 @@ const PLATFORM_SCRAPERS = {
       return document.title.replace(/\s*[-–—|]\s*(GeeksforGeeks|GFG).*$/i, '').trim();
     },
     getTags: () => {
-      // GFG topic tags
+
       const tagEls = document.querySelectorAll(
         '.problem_tag_container a, .tags-container a, [class*="problem-tag"] a'
       );
@@ -140,7 +140,7 @@ const PLATFORM_SCRAPERS = {
       const match = document.title.match(/^(.+?)\s*[-–—]\s*AtCoder/i);
       return match ? match[1].trim() : document.title.replace(/\s*[-–—|]\s*AtCoder.*$/i, '').trim();
     },
-    getTags: () => [] // AtCoder doesn't show tags publicly
+    getTags: () => []
   },
 
   'topcoder.com': {

@@ -31,7 +31,7 @@ function App() {
         setUserName(response.data.name);
         localStorage.setItem("userName", response.data.name);
       } catch (err) {
-        // silently ignore profile fetch errors
+
       }
     };
 
@@ -40,7 +40,7 @@ function App() {
     }
   }, [user]);
 
-  // Close mobile menu on route change
+
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
@@ -117,7 +117,7 @@ function App() {
           </div>
         </nav>
 
-        {/* User Section */}
+
         <div className="p-4 border-t border-gray-800">
           <div className="relative">
             <button
@@ -157,7 +157,7 @@ function App() {
       <div className={`fixed inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-50 transform transition-transform duration-300 lg:hidden ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        {/* Logo */}
+
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -177,7 +177,7 @@ function App() {
           </div>
         </div>
 
-        {/* Navigation */}
+
         <nav className="flex-1 p-4">
           <div className="space-y-2">
             {navigation.map((item) => {
@@ -203,7 +203,7 @@ function App() {
           </div>
         </nav>
 
-        {/* User Section */}
+
         <div className="p-4 border-t border-gray-800">
           <div className="relative">
             <button

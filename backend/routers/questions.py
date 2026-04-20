@@ -67,7 +67,7 @@ def add_question(
         days_until_review = days_done
     elif question.status == "help":
         days_until_review = days_help
-    else:  # fail
+    else:
         days_until_review = days_fail
     
     schedule = models.Schedule(
@@ -87,9 +87,7 @@ def get_all_questions(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    # Tags are eagerly loaded via the relationship (lazy="selectin").
-    # .limit(500) prevents a single user with thousands of questions from
-    # loading everything into memory at once and crashing the server.
+
     questions = db.query(models.Question).filter(
         models.Question.user_id == user_id
     ).order_by(models.Question.created_at.desc()).limit(500).all()

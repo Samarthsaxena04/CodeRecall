@@ -7,7 +7,7 @@ export default function Register({ goToLogin }) {
   const { scriptLoadedSuccessfully } = useGoogleOAuth();
   const googleBtnRef = useRef(null);
 
-  // Step tracking: "google" → "complete-signup"
+
   const [step, setStep] = useState("google"); // "google" | "complete-signup"
   const [signupToken, setSignupToken] = useState("");
   const [googleEmail, setGoogleEmail] = useState("");
@@ -46,7 +46,7 @@ export default function Register({ goToLogin }) {
     }
   }, [googleAuth]);
 
-  // Render the official Google button into our container
+
   useEffect(() => {
     if (!scriptLoadedSuccessfully || !window.google?.accounts?.id || !googleBtnRef.current) return;
 

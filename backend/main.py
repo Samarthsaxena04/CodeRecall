@@ -7,11 +7,11 @@ from slowapi.errors import RateLimitExceeded
 import logging
 
 from config import FRONTEND_URLS
-from limiter import limiter          # shared rate-limiter instance
+from limiter import limiter
 from routers import questions, revision, auth, stats
 from scheduler import start_scheduler, stop_scheduler
 
-# Configure logging — stdout only (Azure App Service streams stdout to Log Stream)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -43,7 +43,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_URLS,
-    allow_origin_regex=r"chrome-extension://.*",  # Allow CodeRecall Chrome extension
+    allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,14 +75,11 @@ async def home(request: Request):
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for Azure App Service monitoring"""
+
     import sqlalchemy
     from database import SessionLocal
     db = SessionLocal()
     try:
-        # db.close() is guaranteed to run in the finally block whether the
-        # query succeeds or throws — fixes the connection leak that existed
-        # when the except block returned early without closing the session.
         db.execute(sqlalchemy.text('SELECT 1'))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
@@ -92,4 +89,4 @@ async def health_check():
             content={"status": "unhealthy", "database": "disconnected"}
         )
     finally:
-        db.close()   # always runs — no more leaked connections
+        db.close()

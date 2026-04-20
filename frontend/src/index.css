@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-/* Hide scrollbar visually while still allowing scroll if needed */
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Dark scrollbar to match app theme */
+
 .dark-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #4b5563 #111827;

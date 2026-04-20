@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../api";
 
-// Common timezones for dropdown
+
 const TIMEZONES = [
   { value: "UTC", label: "UTC (Coordinated Universal Time)" },
   { value: "America/New_York", label: "Eastern Time (US)" },
@@ -203,7 +203,7 @@ function SettingsPage() {
         </form>
       </div>
 
-      {/* Spaced Repetition Intervals */}
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
         <h3 className="text-lg font-semibold text-white mb-4">Revision Intervals</h3>
         <p className="text-sm text-gray-400 mb-6">
@@ -287,7 +287,7 @@ function SettingsPage() {
         </form>
       </div>
 
-      {/* Email Notification Settings */}
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
         <h3 className="text-lg font-semibold text-white mb-4">Email Notifications</h3>
         <p className="text-sm text-gray-400 mb-6">
@@ -295,7 +295,7 @@ function SettingsPage() {
         </p>
         
         <form onSubmit={handleEmailSettingsSubmit} className="space-y-5">
-          {/* Enable/Disable Toggle */}
+
           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
             <div>
               <p className="text-sm font-medium text-gray-300">Enable Email Reminders</p>
@@ -315,7 +315,7 @@ function SettingsPage() {
             </label>
           </div>
 
-          {/* Reminder Time */}
+
           {emailSettings.email_notifications_enabled && (
             <>
               <div>
@@ -336,7 +336,7 @@ function SettingsPage() {
                 </p>
               </div>
 
-              {/* Timezone */}
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Timezone

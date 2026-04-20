@@ -124,17 +124,7 @@ def stats_heatmap(
         except pytz.exceptions.UnknownTimeZoneError:
             pass  # fall back to UTC
 
-    # Previously: loaded ALL QuestionLog rows into Python, iterated, and
-    # grouped manually — O(n) memory usage that grows with every log entry.
-    #
-    # Now: the entire GROUP BY happens inside PostgreSQL.
-    # Python receives one small row per unique date — constant memory cost.
-    #
-    # func.timezone(tz, func.timezone('UTC', timestamp)):
-    #   Step 1 — func.timezone('UTC', naive_ts)  → tells Postgres the stored
-    #             timestamp is UTC, producing a timestamptz.
-    #   Step 2 — func.timezone(user_tz_str, timestamptz) → converts to the
-    #             user's local time before truncating to a date.
+
     rows = (
         db.query(
             cast(

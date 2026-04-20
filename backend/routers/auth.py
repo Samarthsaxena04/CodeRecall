@@ -25,7 +25,7 @@ import models
 router = APIRouter()
 
 def validate_password(password: str) -> tuple[bool, str]:
-    """Enforce minimum password complexity. Returns (is_valid, error_message)."""
+    
     if len(password) < 8:
         return False, "Password must be at least 8 characters long"
     if not re.search(r"[A-Z]", password):
@@ -123,7 +123,7 @@ def register(request: Request, user: UserAuth, db: Session = Depends(get_db)):
 
 @router.post("/google")
 def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
-    """Verify Google ID token, create partial user, return signup token."""
+    
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
     
@@ -203,8 +203,7 @@ def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
 @router.post("/complete-signup")
 @limiter.limit("5/minute")   # max 5 attempts per IP per minute
 def complete_signup(request: Request, body: CompleteSignupRequest, db: Session = Depends(get_db)):
-    """Complete Google signup by setting name and password."""
-    # FastAPI Request arg is required by slowapi; payload renamed to `body` to avoid the name clash.
+    
     try:
         payload = jwt.decode(body.signup_token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
@@ -240,7 +239,7 @@ def complete_signup(request: Request, body: CompleteSignupRequest, db: Session =
 
 @router.post("/google-login", response_model=TokenResponse)
 def google_login(request: GoogleAuthRequest, db: Session = Depends(get_db)):
-    """Login with Google. User must have completed signup."""
+    
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
     
@@ -323,7 +322,7 @@ def get_profile(db: Session = Depends(get_db), user_id: int = Depends(get_curren
 
 @router.get("/profile/settings")
 def get_profile_with_settings(db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
-    """Get user profile including email notification settings."""
+    
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -360,7 +359,7 @@ def update_email_settings(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    """Update user's email notification settings."""
+    
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

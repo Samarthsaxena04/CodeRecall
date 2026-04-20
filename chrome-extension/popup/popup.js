@@ -15,28 +15,28 @@ let currentApiUrl = API_URLS.production;
 
 // ── DOM refs ────────────────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
-const loginView   = $('#login-view');
-const mainView    = $('#main-view');
-const loginForm   = $('#login-form');
-const loginEmail  = $('#login-email');
-const loginPwd    = $('#login-password');
-const loginBtn    = $('#login-btn');
-const loginErr    = $('#login-error');
-const addForm     = $('#add-form');
-const addBtn      = $('#add-btn');
-const addErr      = $('#add-error');
-const addSuccess  = $('#add-success');
-const userNameEl  = $('#user-name');
-const logoutBtn   = $('#logout-btn');
-const dueBadge    = $('#due-badge');
-const dueList     = $('#due-list');
-const dueLoading  = $('#due-loading');
-const dueEmpty    = $('#due-empty');
-const detectionBar   = $('#detection-status');
-const detectionIcon  = $('#detection-icon');
-const detectionText  = $('#detection-text');
-const openDashboard  = $('#open-dashboard');
-const openRegister   = $('#open-website-register');
+const loginView = $('#login-view');
+const mainView = $('#main-view');
+const loginForm = $('#login-form');
+const loginEmail = $('#login-email');
+const loginPwd = $('#login-password');
+const loginBtn = $('#login-btn');
+const loginErr = $('#login-error');
+const addForm = $('#add-form');
+const addBtn = $('#add-btn');
+const addErr = $('#add-error');
+const addSuccess = $('#add-success');
+const userNameEl = $('#user-name');
+const logoutBtn = $('#logout-btn');
+const dueBadge = $('#due-badge');
+const dueList = $('#due-list');
+const dueLoading = $('#due-loading');
+const dueEmpty = $('#due-empty');
+const detectionBar = $('#detection-status');
+const detectionIcon = $('#detection-icon');
+const detectionText = $('#detection-text');
+const openDashboard = $('#open-dashboard');
+const openRegister = $('#open-website-register');
 const googleLoginBtn = $('#google-login-btn');
 
 // ── API helpers ─────────────────────────────────────────────────────────
@@ -253,14 +253,14 @@ async function detectPage() {
 
 function isSupportedUrl(url) {
   const patterns = [
-    { regex: /leetcode\.com\/problems\//i,          platform: 'LeetCode' },
+    { regex: /leetcode\.com\/problems\//i, platform: 'LeetCode' },
     { regex: /codeforces\.com\/(problemset\/problem|contest\/\d+\/problem)\//i, platform: 'Codeforces' },
-    { regex: /codechef\.com\/problems\//i,          platform: 'CodeChef' },
-    { regex: /hackerrank\.com\/challenges\//i,      platform: 'HackerRank' },
+    { regex: /codechef\.com\/problems\//i, platform: 'CodeChef' },
+    { regex: /hackerrank\.com\/challenges\//i, platform: 'HackerRank' },
     { regex: /hackerearth\.com\/(practice|problem)\//i, platform: 'HackerEarth' },
-    { regex: /geeksforgeeks\.org\/problems\//i,     platform: 'GeeksforGeeks' },
+    { regex: /geeksforgeeks\.org\/problems\//i, platform: 'GeeksforGeeks' },
     { regex: /atcoder\.jp\/contests\/.*\/tasks\//i, platform: 'AtCoder' },
-    { regex: /topcoder\.com\/challenges\//i,        platform: 'TopCoder' }
+    { regex: /topcoder\.com\/challenges\//i, platform: 'TopCoder' }
   ];
   for (const p of patterns) {
     if (p.regex.test(url)) return p;
@@ -270,7 +270,7 @@ function isSupportedUrl(url) {
 
 function cleanPageTitle(title, platform) {
   const suffixes = ['LeetCode', 'Codeforces', 'CodeChef', 'HackerRank',
-                    'HackerEarth', 'GeeksforGeeks', 'GFG', 'AtCoder', 'TopCoder'];
+    'HackerEarth', 'GeeksforGeeks', 'GFG', 'AtCoder', 'TopCoder'];
   for (const s of suffixes) {
     title = title.replace(new RegExp(`\\s*[-–—|]\\s*${s}.*$`, 'i'), '');
   }
@@ -415,7 +415,7 @@ async function loadDueRevisions() {
             btn.textContent = 'Error';
             setTimeout(() => {
               btn.textContent = btn.dataset.status === 'done' ? '✅ Solved' :
-                               btn.dataset.status === 'help' ? '🆘 Help' : '❌ Fail';
+                btn.dataset.status === 'help' ? '🆘 Help' : '❌ Fail';
               btn.disabled = false;
             }, 1500);
           }

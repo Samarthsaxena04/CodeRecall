@@ -70,7 +70,7 @@ function ExtensionPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      {/* Hero */}
+
       <div className="relative rounded-2xl overflow-hidden border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-blue-950 p-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -109,7 +109,7 @@ function ExtensionPage() {
         </div>
       </div>
 
-      {/* Features */}
+
       <div>
         <h2 className="text-xl font-bold text-white mb-4">What it does</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -127,7 +127,7 @@ function ExtensionPage() {
         </div>
       </div>
 
-      {/* Installation Steps */}
+
       <div>
         <h2 className="text-xl font-bold text-white mb-4">How to Install</h2>
         <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
@@ -159,7 +159,7 @@ function ExtensionPage() {
         </div>
       </div>
 
-      {/* Browser Compatibility */}
+
       <div>
         <h2 className="text-xl font-bold text-white mb-4">Browser Compatibility</h2>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -183,7 +183,7 @@ function ExtensionPage() {
         </div>
       </div>
 
-      {/* FAQ / Note */}
+
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
         <h3 className="font-semibold text-white mb-3">Frequently Asked Questions</h3>
         <div className="space-y-4 text-sm">

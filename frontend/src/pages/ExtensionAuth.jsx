@@ -22,12 +22,12 @@ export default function ExtensionAuth() {
   const [status, setStatus] = useState("idle"); // idle | loading | success | error | no_ext
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Validate that we have an extension ID
+
   useEffect(() => {
     if (!extId) setStatus("no_ext");
   }, [extId]);
 
-  // Render the Google sign-in button
+
   useEffect(() => {
     if (
       status === "no_ext" ||
@@ -66,12 +66,12 @@ export default function ExtensionAuth() {
     setErrorMsg("");
 
     try {
-      // Use the same backend endpoint the website uses
+
       const { data } = await API.post("/google-login", {
         token: response.credential,
       });
 
-      // Send tokens back to the extension
+
       const payload = {
         type: "extensionAuthSuccess",
         access_token: data.access_token,
@@ -101,14 +101,14 @@ export default function ExtensionAuth() {
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
       <div
         style={{ maxWidth: 420 }}
         className="w-full bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6"
       >
-        {/* Logo + title */}
+
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center mb-1">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,7 +122,7 @@ export default function ExtensionAuth() {
           </p>
         </div>
 
-        {/* States */}
+
         {status === "no_ext" && (
           <div className="text-center text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-lg px-4 py-3 w-full">
             ⚠️ This page was opened without a valid extension ID.
@@ -147,7 +147,7 @@ export default function ExtensionAuth() {
 
         {status !== "no_ext" && status !== "success" && (
           <>
-            {/* Google button */}
+
             <div ref={googleBtnRef} className="w-full flex justify-center" />
 
             {status === "loading" && (

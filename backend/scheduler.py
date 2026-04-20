@@ -1,4 +1,4 @@
-"""Automated email reminder scheduler using APScheduler."""
+
 
 import logging
 import threading
@@ -27,7 +27,6 @@ def get_db() -> Session:
 
 
 def get_questions_due_for_user(db: Session, user_id: int) -> List[Dict]:
-    """Return all questions due for revision for a given user today."""
     today = date.today()
     
     schedules = db.query(models.Schedule).filter(
@@ -66,7 +65,6 @@ def get_questions_due_for_user(db: Session, user_id: int) -> List[Dict]:
 
 
 def send_reminder_for_user(user: models.User, db: Session) -> bool:
-    """Send a reminder email to a user if they have questions due. Returns False on error."""
     try:
         questions = get_questions_due_for_user(db, int(user.id))
         
@@ -93,10 +91,6 @@ def send_reminder_for_user(user: models.User, db: Session) -> bool:
 
 
 async def check_and_send_reminders():
-    """
-    Runs every minute; sends a reminder to each user whose preferred
-    reminder time matches the current minute in their local timezone.
-    """
     if not is_email_configured():
         logger.debug("Email service not configured, skipping reminder check.")
         return
@@ -134,7 +128,6 @@ async def check_and_send_reminders():
 
 
 async def send_immediate_reminder(user_id: int) -> Dict[str, Any]:
-    """Send an immediate reminder email to a user. Used for dev/local testing."""
     db = get_db()
     try:
         user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -168,7 +161,6 @@ async def send_immediate_reminder(user_id: int) -> Dict[str, Any]:
 
 
 def job_listener(event):
-    """Handle job execution events for logging."""
     if event.exception:
         logger.error(f"Job {event.job_id} failed with exception: {event.exception}")
     else:
@@ -176,7 +168,6 @@ def job_listener(event):
 
 
 def start_scheduler():
-    """Start the background scheduler."""
     with _scheduler_lock:
         if scheduler.running:
             logger.info("Scheduler is already running")
@@ -197,7 +188,6 @@ def start_scheduler():
 
 
 def stop_scheduler():
-    """Stop the background scheduler."""
     if scheduler.running:
         scheduler.shutdown(wait=False)
         logger.info("Email reminder scheduler stopped")

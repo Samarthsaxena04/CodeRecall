@@ -21,7 +21,7 @@ function History() {
   const [tagSearch, setTagSearch] = useState("");
   const tagDropdownRef = useRef(null);
 
-  // Close tag dropdown on outside click
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target)) {

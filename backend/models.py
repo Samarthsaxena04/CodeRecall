@@ -12,24 +12,23 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     name = Column(String, default="User")
-    password = Column(String, nullable=True)  # Nullable for Google signup before completion
-    refresh_token = Column(Text, nullable=True)  # Store hashed refresh token
+    password = Column(String, nullable=True)
+    refresh_token = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
     
-    # Google OAuth fields
+
     google_id = Column(String, unique=True, nullable=True)
     email_verified = Column(Boolean, default=False)
-    signup_completed = Column(Boolean, default=False)  # False until user sets name + password
+    signup_completed = Column(Boolean, default=False)
 
-    # Email notification settings
+
     email_notifications_enabled = Column(Boolean, default=True)
-    email_reminder_time = Column(Time, default=time(9, 0))  # User's preferred reminder time (HH:MM)
+    email_reminder_time = Column(Time, default=time(9, 0))
     timezone = Column(String, default="UTC")
 
-    # Custom spaced repetition intervals (in days)
-    reminder_days_done = Column(Integer, default=12)  # Interval when solved
-    reminder_days_help = Column(Integer, default=5)   # Interval when needed help
-    reminder_days_fail = Column(Integer, default=3)   # Interval when failed
+    reminder_days_done = Column(Integer, default=12)
+    reminder_days_help = Column(Integer, default=5)
+    reminder_days_fail = Column(Integer, default=3)
 
 
 class Question(Base):
@@ -46,7 +45,7 @@ class Question(Base):
     tags = relationship("Tag", secondary="question_tags", backref="questions", lazy="selectin")
     logs = relationship("QuestionLog", backref="question", lazy="selectin", cascade="all, delete-orphan")
     schedules = relationship("Schedule", backref="question", lazy="selectin", cascade="all, delete-orphan")
-    # selectin avoids N+1 queries; delete-orphan cascades removal of logs/schedules when a question is deleted.
+
 
 class Tag(Base):
     __tablename__ = "tags" 

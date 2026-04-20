@@ -40,7 +40,7 @@ export default function Login({ goToRegister }) {
     }
   };
 
-  // Render the official Google button into our container
+
   useEffect(() => {
     if (!scriptLoadedSuccessfully || !window.google?.accounts?.id || !googleBtnRef.current) return;
 

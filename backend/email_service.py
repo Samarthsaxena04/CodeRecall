@@ -1,6 +1,4 @@
-"""
-Email Service using SendGrid for sending revision reminder emails.
-"""
+
 
 import os
 import logging
@@ -21,7 +19,6 @@ SENDGRID_REPLY_TO_EMAIL = os.getenv("SENDGRID_REPLY_TO_EMAIL", SENDGRID_FROM_EMA
 
 
 def is_email_configured() -> bool:
-    """Check if email service is properly configured."""
     return bool(SENDGRID_API_KEY and SENDGRID_FROM_EMAIL)
 
 
@@ -30,7 +27,6 @@ def send_revision_reminder_email(
     user_name: str,
     questions: List[Dict]
 ) -> bool:
-    """Build and send an HTML revision reminder email via SendGrid. Returns True on success."""
     if not is_email_configured():
         logger.warning("Email service not configured. Skipping email send.")
         return False
