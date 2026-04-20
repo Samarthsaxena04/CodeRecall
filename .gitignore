@@ -43,6 +43,9 @@ pyvenv.cfg
 # Distribution / packaging
 build/
 dist/
+*.zip
+chrome-extension/create_icons.py
+chrome-extension/generate_icons.*
 develop-eggs/
 downloads/
 eggs/
