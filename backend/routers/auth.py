@@ -363,26 +363,27 @@ def update_email_settings(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    try:
-        pytz.timezone(settings.timezone)
-    except pytz.exceptions.UnknownTimeZoneError:
-        raise HTTPException(status_code=400, detail=f"Invalid timezone: {settings.timezone}")
 
-    reminder_time = None
-    if settings.email_reminder_time:
-        try:
-            hour, minute = map(int, settings.email_reminder_time.split(":"))
-            reminder_time = time(hour=hour, minute=minute)
-        except (ValueError, AttributeError):
-            raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM (e.g., 09:00)")
-    
+    # Only validate and update timezone/reminder_time when notifications are being enabled
+    if settings.email_notifications_enabled:
+        if settings.timezone:
+            try:
+                pytz.timezone(settings.timezone)
+            except pytz.exceptions.UnknownTimeZoneError:
+                raise HTTPException(status_code=400, detail=f"Invalid timezone: {settings.timezone}")
+            user.timezone = settings.timezone
+
+        if settings.email_reminder_time:
+            try:
+                hour, minute = map(int, settings.email_reminder_time.split(":"))
+                user.email_reminder_time = time(hour=hour, minute=minute)
+            except (ValueError, AttributeError):
+                raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM (e.g., 09:00)")
+
     user.email_notifications_enabled = settings.email_notifications_enabled
-    user.email_reminder_time = reminder_time
-    user.timezone = settings.timezone
-    
+
     db.commit()
-    
+
     return {
         "message": "Email settings updated",
         "email_notifications_enabled": user.email_notifications_enabled,
